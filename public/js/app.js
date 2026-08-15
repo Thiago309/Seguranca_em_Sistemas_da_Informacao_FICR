@@ -1,0 +1,385 @@
+/**
+ * Controlador Principal da Aplicação Front-End (Café Artisanal)
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Referências do DOM
+    const mainTabs = document.getElementById('mainTabs');
+    const tabButtons = mainTabs.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const inspectorContent = document.getElementById('inspectorContent');
+    const toastContainer = document.getElementById('toastContainer');
+
+    const formPessoa = document.getElementById('formPessoa');
+    const formProduto = document.getElementById('formProduto');
+
+    const tablePessoasBody = document.querySelector('#tablePessoas tbody');
+    const tableProdutosBody = document.querySelector('#tableProdutos tbody');
+
+    // Stats
+    const statPessoas = document.getElementById('statPessoas');
+    const statProdutos = document.getElementById('statProdutos');
+    const statEstoque = document.getElementById('statEstoque');
+    const totalRecordsBadge = document.getElementById('totalRecordsBadge');
+
+    // Botões de Refresh
+    const btnRefreshPessoas = document.getElementById('btnRefreshPessoas');
+    const btnRefreshProdutos = document.getElementById('btnRefreshProdutos');
+
+    // =========================================================================
+    // 1. SISTEMA DE NAVEGAÇÃO POR ABAS
+    // =========================================================================
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTab = button.dataset.tab;
+
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            button.classList.add('active');
+            const targetEl = document.getElementById(targetTab);
+            if (targetEl) targetEl.classList.add('active');
+
+            if (targetTab === 'tab-registros') {
+                loadRecords();
+            }
+        });
+    });
+
+    // =========================================================================
+    // 2. APLICAÇÃO DE MÁSCARAS E ATUALIZAÇÃO DO INSPETOR EM TEMPO REAL
+    // =========================================================================
+    const allInputs = document.querySelectorAll('input, select, textarea');
+
+    allInputs.forEach(input => {
+        // Evento de Foco: Ativa o Inspetor de Segurança
+        input.addEventListener('focus', () => {
+            updateInspector(input);
+        });
+
+        // Evento de Digitação: Aplica Máscara, Atualiza Contador e Valida
+        input.addEventListener('input', (e) => {
+            applyMask(input);
+            window.ValidationEngine.updateCharCounter(input);
+            window.ValidationEngine.validateField(input);
+            updateInspector(input); // Recarrega inspetor com contadores atualizados
+        });
+
+        // Evento de Saída (Blur)
+        input.addEventListener('blur', () => {
+            window.ValidationEngine.validateField(input);
+        });
+    });
+
+    function applyMask(input) {
+        const securityType = input.dataset.securityType;
+        const startPos = input.selectionStart;
+
+        if (securityType === 'mask-cpf') {
+            input.value = window.Masks.cpf(input.value);
+        } else if (securityType === 'mask-phone') {
+            input.value = window.Masks.phone(input.value);
+        } else if (securityType === 'mask-currency') {
+            input.value = window.Masks.currency(input.value);
+        } else if (securityType === 'mask-sku') {
+            input.value = window.Masks.sku(input.value);
+        }
+    }
+
+    // =========================================================================
+    // 3. PAINEL DO INSPETOR DE SEGURANÇA EM TEMPO REAL
+    // =========================================================================
+    function updateInspector(inputEl) {
+        const securityType = inputEl.dataset.securityType;
+        const fieldName = inputEl.dataset.fieldName || inputEl.name || "Campo Selecionado";
+        const explanation = window.SecurityExplanations[securityType];
+
+        if (!explanation) {
+            inspectorContent.innerHTML = `
+                <div class="inspector-placeholder">
+                    <i class="fa-solid fa-check-double"></i>
+                    <p>Campo selecionado: <strong>${fieldName}</strong></p>
+                </div>
+            `;
+            return;
+        }
+
+        const maxLen = inputEl.getAttribute('maxlength');
+        const curLen = inputEl.value.length;
+        const isReq = inputEl.hasAttribute('required');
+
+        inspectorContent.innerHTML = `
+            <div class="inspector-active-box">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span class="insp-tag insp-tag-security">${explanation.securityTag}</span>
+                    <span class="insp-tag insp-tag-ux">${explanation.uxTag}</span>
+                </div>
+                
+                <h4 class="insp-field-title"><i class="fa-solid fa-pen-to-square"></i> ${fieldName}</h4>
+
+                <div class="insp-card-block">
+                    <div class="insp-section-title"><i class="fa-solid fa-shield-halved"></i> Por que é usado em Segurança?</div>
+                    <p>${explanation.securityDesc}</p>
+                </div>
+
+                <div class="insp-card-block">
+                    <div class="insp-section-title"><i class="fa-solid fa-user-check"></i> Por que é usado em UX?</div>
+                    <p>${explanation.uxDesc}</p>
+                </div>
+
+                <div class="insp-card-block">
+                    <div class="insp-section-title"><i class="fa-solid fa-sliders"></i> Atributos Ativos no DOM:</div>
+                    <ul style="list-style:none; font-size:0.8rem; color:var(--text-main); display:flex; flex-direction:column; gap:0.3rem;">
+                        <li><strong>Obrigatoriedade:</strong> ${isReq ? '<span style="color:var(--error)">Required (Sim)</span>' : 'Opcional'}</li>
+                        <li><strong>Limite Maxlength:</strong> ${maxLen ? `${maxLen} caracteres` : 'Não definido'}</li>
+                        <li><strong>Estado Atual:</strong> ${curLen} caracteres digitados</li>
+                        <li><strong>Tipo Nativo:</strong> <code>type="${inputEl.getAttribute('type') || 'text'}"</code></li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+
+    // =========================================================================
+    // 4. SUBMISSÃO DOS FORMULÁRIOS (SUBMIT HANDLERS)
+    // =========================================================================
+
+    // Cadastrar Pessoa
+    formPessoa.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const isFormValid = window.ValidationEngine.validateForm(formPessoa);
+        if (!isFormValid) {
+            showToast("Verifique os campos destacados em vermelho antes de prosseguir.", "error");
+            return;
+        }
+
+        const formData = {
+            nome: document.getElementById('pessoaNome').value,
+            cpf: document.getElementById('pessoaCpf').value,
+            email: document.getElementById('pessoaEmail').value,
+            telefone: document.getElementById('pessoaTelefone').value,
+            tipo: document.getElementById('pessoaTipo').value
+        };
+
+        try {
+            const response = await fetch('/api/pessoas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                showToast(`Pessoa "${formData.nome}" cadastrada com sucesso!`, "success");
+                formPessoa.reset();
+                resetFormValidationState(formPessoa);
+                loadRecords();
+            } else {
+                showToast(result.error || "Erro ao cadastrar pessoa.", "error");
+            }
+        } catch (err) {
+            console.error("Erro na requisição:", err);
+            showToast("Falha na comunicação com o servidor Node.js.", "error");
+        }
+    });
+
+    // Cadastrar Produto
+    formProduto.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const isFormValid = window.ValidationEngine.validateForm(formProduto);
+        if (!isFormValid) {
+            showToast("Verifique os campos destacados em vermelho antes de prosseguir.", "error");
+            return;
+        }
+
+        const rawPreco = document.getElementById('prodPreco').value;
+        const precoNum = window.Masks.currencyToNumber(rawPreco);
+
+        const formData = {
+            nome: document.getElementById('prodNome').value,
+            categoria: document.getElementById('prodCategoria').value,
+            preco: precoNum,
+            sku: document.getElementById('prodSku').value,
+            estoque: parseInt(document.getElementById('prodEstoque').value, 10),
+            descricao: document.getElementById('prodDescricao').value
+        };
+
+        try {
+            const response = await fetch('/api/produtos', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                showToast(`Produto "${formData.nome}" adicionado ao menu!`, "success");
+                formProduto.reset();
+                resetFormValidationState(formProduto);
+                loadRecords();
+            } else {
+                showToast(result.error || "Erro ao cadastrar produto.", "error");
+            }
+        } catch (err) {
+            console.error("Erro na requisição:", err);
+            showToast("Falha na comunicação com o servidor Node.js.", "error");
+        }
+    });
+
+    function resetFormValidationState(formEl) {
+        const inputs = formEl.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+            input.classList.remove('is-valid', 'is-invalid');
+            window.ValidationEngine.updateCharCounter(input);
+        });
+    }
+
+    // =========================================================================
+    // 5. CARREGAMENTO E EXIBIÇÃO DE REGISTROS (TABELA + STATS)
+    // =========================================================================
+    async function loadRecords() {
+        try {
+            // Fetch Pessoas
+            const resPessoas = await fetch('/api/pessoas');
+            const dataPessoas = await resPessoas.json();
+            
+            // Fetch Produtos
+            const resProdutos = await fetch('/api/produtos');
+            const dataProdutos = await resProdutos.json();
+
+            // Fetch Stats
+            const resStats = await fetch('/api/stats');
+            const dataStats = await resStats.json();
+
+            if (dataPessoas.success) renderPessoasTable(dataPessoas.data);
+            if (dataProdutos.success) renderProdutosTable(dataProdutos.data);
+
+            if (dataStats) {
+                statPessoas.textContent = dataStats.totalPessoas || 0;
+                statProdutos.textContent = dataStats.totalProdutos || 0;
+                statEstoque.textContent = dataStats.totalEstoque || 0;
+                totalRecordsBadge.textContent = (dataStats.totalPessoas || 0) + (dataStats.totalProdutos || 0);
+            }
+        } catch (err) {
+            console.error("Erro ao carregar dados do servidor:", err);
+        }
+    }
+
+    function renderPessoasTable(list) {
+        if (!list || list.length === 0) {
+            tablePessoasBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-dim);">Nenhuma pessoa cadastrada ainda.</td></tr>`;
+            return;
+        }
+
+        tablePessoasBody.innerHTML = list.map(p => `
+            <tr>
+                <td><strong>${escapeHtml(p.nome)}</strong></td>
+                <td><code>${escapeHtml(p.cpf)}</code></td>
+                <td>${escapeHtml(p.email)}</td>
+                <td>${escapeHtml(p.telefone)}</td>
+                <td><span class="type-pill">${escapeHtml(p.tipo)}</span></td>
+                <td>
+                    <button class="btn-danger-icon" onclick="deletePessoa('${p.id}')" title="Excluir Registro">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function renderProdutosTable(list) {
+        if (!list || list.length === 0) {
+            tableProdutosBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--text-dim);">Nenhum produto cadastrado no menu.</td></tr>`;
+            return;
+        }
+
+        tableProdutosBody.innerHTML = list.map(p => `
+            <tr>
+                <td><code>${escapeHtml(p.sku)}</code></td>
+                <td><strong>${escapeHtml(p.nome)}</strong></td>
+                <td><span class="type-pill">${escapeHtml(p.categoria)}</span></td>
+                <td><span class="price-tag">R$ ${p.preco.toFixed(2).replace('.', ',')}</span></td>
+                <td>${p.estoque} un.</td>
+                <td>
+                    <button class="btn-danger-icon" onclick="deleteProduto('${p.id}')" title="Excluir Produto">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // Exclusão via API
+    window.deletePessoa = async function(id) {
+        if (!confirm("Deseja realmente remover esta pessoa?")) return;
+        try {
+            const res = await fetch(`/api/pessoas/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                showToast("Pessoa removida com sucesso.", "info");
+                loadRecords();
+            }
+        } catch (err) {
+            showToast("Erro ao excluir pessoa.", "error");
+        }
+    };
+
+    window.deleteProduto = async function(id) {
+        if (!confirm("Deseja realmente remover este produto do menu?")) return;
+        try {
+            const res = await fetch(`/api/produtos/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                showToast("Produto removido com sucesso.", "info");
+                loadRecords();
+            }
+        } catch (err) {
+            showToast("Erro ao excluir produto.", "error");
+        }
+    };
+
+    if (btnRefreshPessoas) btnRefreshPessoas.addEventListener('click', loadRecords);
+    if (btnRefreshProdutos) btnRefreshProdutos.addEventListener('click', loadRecords);
+
+    // =========================================================================
+    // 6. SISTEMA DE NOTIFICAÇÕES (TOAST) & ESCAPE HTML (XSS DEFENSE)
+    // =========================================================================
+    function showToast(message, type = "info") {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        let icon = "fa-circle-info";
+        if (type === "success") icon = "fa-circle-check";
+        if (type === "error") icon = "fa-triangle-exclamation";
+
+        toast.innerHTML = `
+            <i class="fa-solid ${icon}"></i>
+            <span>${message}</span>
+        `;
+
+        toastContainer.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(20px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // Inicialização
+    loadRecords();
+});

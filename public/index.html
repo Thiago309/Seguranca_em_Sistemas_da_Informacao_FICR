@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Café Artisanal | Gestão, Segurança & UX no Front-End</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Style CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Top Navbar Header -->
+    <header class="top-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fa-solid fa-mug-hot"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Café Artisanal</h1>
+                    <span>Sistema de Cadastro • Segurança SSI & UX</span>
+                </div>
+            </div>
+            
+            <div class="header-badges">
+                <span class="badge badge-node">
+                    <i class="fa-brands fa-node-js"></i> Node.js Backend Active
+                </span>
+                <span class="badge badge-security">
+                    <i class="fa-solid fa-shield-halved"></i> Front-End Hardened
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-layout">
+        <!-- Main Content Area -->
+        <main class="content-area">
+            <!-- Navigation Tabs -->
+            <nav class="nav-tabs" id="mainTabs">
+                <button class="tab-btn active" data-tab="tab-pessoas">
+                    <i class="fa-solid fa-user-plus"></i> Cadastro de Pessoas
+                </button>
+                <button class="tab-btn" data-tab="tab-produtos">
+                    <i class="fa-solid fa-box-archive"></i> Cadastro de Produtos
+                </button>
+                <button class="tab-btn" data-tab="tab-registros">
+                    <i class="fa-solid fa-list-check"></i> Registros & Gestão
+                    <span class="tab-badge" id="totalRecordsBadge">0</span>
+                </button>
+                <button class="tab-btn tab-btn-highlight" data-tab="tab-guia">
+                    <i class="fa-solid fa-graduation-cap"></i> Manual Segurança & UX
+                </button>
+            </nav>
+
+            <!-- TAB 1: CADASTRO DE PESSOAS -->
+            <section class="tab-content active" id="tab-pessoas">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-id-card"></i> Formulário de Cadastro de Pessoas</h2>
+                        <p class="subtitle">Cadastre clientes VIP e funcionários com validações rigorosas em tempo real.</p>
+                    </div>
+
+                    <form id="formPessoa" novalidate>
+                        <div class="form-grid">
+                            <!-- Nome Completo (Limite de Caracteres + Obrigatório) -->
+                            <div class="form-group">
+                                <label for="pessoaNome">
+                                    Nome Completo <span class="required-star">*</span>
+                                    <i class="fa-solid fa-circle-info security-icon-hint" title="Demostração de maxlength e required"></i>
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-user input-icon"></i>
+                                    <input type="text" 
+                                           id="pessoaNome" 
+                                           name="nome" 
+                                           class="form-input" 
+                                           placeholder="Ex: Maria Clara Alcantara" 
+                                           required 
+                                           maxlength="80" 
+                                           data-field-name="Nome Completo"
+                                           data-security-type="maxlength-required">
+                                </div>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-pessoaNome"></span>
+                                    <span class="char-counter" id="cnt-pessoaNome">0 / 80</span>
+                                </div>
+                            </div>
+
+                            <!-- CPF (Máscara + Tipagem + Limite + Validação Modulo 11) -->
+                            <div class="form-group">
+                                <label for="pessoaCpf">
+                                    CPF <span class="required-star">*</span>
+                                    <i class="fa-solid fa-fingerprint security-icon-hint"></i>
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-id-badge input-icon"></i>
+                                    <input type="text" 
+                                           id="pessoaCpf" 
+                                           name="cpf" 
+                                           class="form-input mask-cpf" 
+                                           placeholder="000.000.000-00" 
+                                           required 
+                                           maxlength="14"
+                                           inputmode="numeric"
+                                           data-field-name="CPF"
+                                           data-security-type="mask-cpf">
+                                </div>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-pessoaCpf"></span>
+                                    <span class="char-counter" id="cnt-pessoaCpf">0 / 14</span>
+                                </div>
+                            </div>
+
+                            <!-- E-mail (Tipagem Email + Obrigatório + Limite) -->
+                            <div class="form-group">
+                                <label for="pessoaEmail">
+                                    E-mail de Contato <span class="required-star">*</span>
+                                    <i class="fa-solid fa-envelope security-icon-hint"></i>
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-at input-icon"></i>
+                                    <input type="email" 
+                                           id="pessoaEmail" 
+                                           name="email" 
+                                           class="form-input" 
+                                           placeholder="exemplo@cafearoma.com.br" 
+                                           required 
+                                           maxlength="100" 
+                                           data-field-name="E-mail de Contato"
+                                           data-security-type="typed-email">
+                                </div>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-pessoaEmail"></span>
+                                    <span class="char-counter" id="cnt-pessoaEmail">0 / 100</span>
+                                </div>
+                            </div>
+
+                            <!-- Telefone / WhatsApp (Máscara + Tipagem Tel + Limite) -->
+                            <div class="form-group">
+                                <label for="pessoaTelefone">
+                                    Telefone / WhatsApp <span class="required-star">*</span>
+                                    <i class="fa-solid fa-phone security-icon-hint"></i>
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-mobile-screen-button input-icon"></i>
+                                    <input type="tel" 
+                                           id="pessoaTelefone" 
+                                           name="telefone" 
+                                           class="form-input mask-phone" 
+                                           placeholder="(81) 90000-0000" 
+                                           required 
+                                           maxlength="15" 
+                                           inputmode="tel"
+                                           data-field-name="Telefone / WhatsApp"
+                                           data-security-type="mask-phone">
+                                </div>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-pessoaTelefone"></span>
+                                    <span class="char-counter" id="cnt-pessoaTelefone">0 / 15</span>
+                                </div>
+                            </div>
+
+                            <!-- Tipo de Pessoa (Seleção Obrigatória) -->
+                            <div class="form-group form-group-full">
+                                <label for="pessoaTipo">
+                                    Tipo de Vínculo / Categoria <span class="required-star">*</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-user-tag input-icon"></i>
+                                    <select id="pessoaTipo" 
+                                            name="tipo" 
+                                            class="form-input" 
+                                            required 
+                                            data-field-name="Tipo de Vínculo"
+                                            data-security-type="required-select">
+                                        <option value="">-- Selecione uma opção --</option>
+                                        <option value="Cliente VIP">Cliente VIP (Clube de Fidelidade)</option>
+                                        <option value="Cliente Frequente">Cliente Frequente</option>
+                                        <option value="Barista (Funcionário)">Barista (Funcionário)</option>
+                                        <option value="Gerente (Funcionário)">Gerente (Funcionário)</option>
+                                        <option value="Fornecedor de Grãos">Fornecedor de Grãos</option>
+                                    </select>
+                                </div>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-pessoaTipo"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fa-solid fa-rotate-left"></i> Limpar Formulário
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-paper-plane"></i> Cadastrar Pessoa
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 2: CADASTRO DE PRODUTOS -->
+            <section class="tab-content" id="tab-produtos">
+                <div class="card form-card">
+                    <div class="card-header">
+                        <h2><i class="fa-solid fa-mug-saucer"></i> Formulário de Cadastro de Produtos</h2>
+                        <p class="subtitle">Adicione itens ao menu da cafeteria com validações numéricas e formatação de moeda.</p>
+                    </div>
+
+                    <form id="formProduto" novalidate>
+                        <div class="form-grid">
+                            <!-- Nome do Produto -->
+                            <div class="form-group">
+                                <label for="prodNome">
+                                    Nome do Produto <span class="required-star">*</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-coffee-bean input-icon"></i>
+                                    <input type="text" 
+                                           id="prodNome" 
+                                           name="nome" 
+                                           class="form-input" 
+                                           placeholder="Ex: Espresso Duplo Arábica" 
+                                           required 
+                                           maxlength="70" 
+                                           data-field-name="Nome do Produto"
+                                           data-security-type="maxlength-required">
+                                </div>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-prodNome"></span>
+                                    <span class="char-counter" id="cnt-prodNome">0 / 70</span>
+                                </div>
+                            </div>
+
+                            <!-- Categoria -->
+                            <div class="form-group">
+                                <label for="prodCategoria">
+                                    Categoria do Menu <span class="required-star">*</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-list-ol input-icon"></i>
+                                    <select id="prodCategoria" 
+                                            name="categoria" 
+                                            class="form-input" 
+                                            required 
+                                            data-field-name="Categoria do Menu"
+                                            data-security-type="required-select">
+                                        <option value="">-- Selecione a Categoria --</option>
+                                        <option value="Bebidas Quentes">Bebidas Quentes (Espresso, Cappuccino...)</option>
+                                        <option value="Bebidas Geladas">Bebidas Geladas (Cold Brew, Frappé...)</option>
+                                        <option value="Grãos & Pós">Grãos Espaciais & Pós (Embalagens)</option>
+                                        <option value="Lanches & Sobremesas">Lanches & Sobremesas (Croissant, Tortas...)</option>
+                                        <option value="Métodos & Acessórios">Métodos & Acessórios (Filtros, Prensa...)</option>
+                                    </select>
+                                </div>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-prodCategoria"></span>
+                                </div>
+                            </div>
+
+                            <!-- Preço de Venda (Máscara de Moeda R$ + Tipagem + Limite) -->
+                            <div class="form-group">
+                                <label for="prodPreco">
+                                    Preço de Venda (R$) <span class="required-star">*</span>
+                                    <i class="fa-solid fa-coins security-icon-hint"></i>
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-brazilian-real-sign input-icon"></i>
+                                    <input type="text" 
+                                           id="prodPreco" 
+                                           name="preco" 
+                                           class="form-input mask-currency" 
+                                           placeholder="R$ 0,00" 
+                                           required 
+                                           maxlength="15" 
+                                           inputmode="numeric"
+                                           data-field-name="Preço de Venda"
+                                           data-security-type="mask-currency">
+                                </div>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-prodPreco"></span>
+                                    <span class="char-counter" id="cnt-prodPreco">0 / 15</span>
+                                </div>
+                            </div>
+
+                            <!-- SKU / Código de Identificação -->
+                            <div class="form-group">
+                                <label for="prodSku">
+                                    Código SKU <span class="required-star">*</span>
+                                    <i class="fa-solid fa-barcode security-icon-hint"></i>
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-barcode input-icon"></i>
+                                    <input type="text" 
+                                           id="prodSku" 
+                                           name="sku" 
+                                           class="form-input mask-sku" 
+                                           placeholder="CAF-ESP-250" 
+                                           required 
+                                           maxlength="15" 
+                                           data-field-name="Código SKU"
+                                           data-security-type="mask-sku">
+                                </div>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-prodSku"></span>
+                                    <span class="char-counter" id="cnt-prodSku">0 / 15</span>
+                                </div>
+                            </div>
+
+                            <!-- Estoque Inicial (Tipagem Number + Min/Max + Required) -->
+                            <div class="form-group">
+                                <label for="prodEstoque">
+                                    Estoque Inicial (Unidades) <span class="required-star">*</span>
+                                    <i class="fa-solid fa-arrow-up-1-9 security-icon-hint"></i>
+                                </label>
+                                <div class="input-wrapper">
+                                    <i class="fa-solid fa-boxes-stacked input-icon"></i>
+                                    <input type="number" 
+                                           id="prodEstoque" 
+                                           name="estoque" 
+                                           class="form-input" 
+                                           placeholder="Ex: 50" 
+                                           required 
+                                           min="0" 
+                                           max="9999" 
+                                           data-field-name="Estoque Inicial"
+                                           data-security-type="typed-number">
+                                </div>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-prodEstoque"></span>
+                                </div>
+                            </div>
+
+                            <!-- Descrição Detalhada (Limite de Caracteres Longo + Sanitização) -->
+                            <div class="form-group form-group-full">
+                                <label for="prodDescricao">
+                                    Descrição do Produto
+                                    <span class="subtitle-hint">(Opcional • Máximo de 250 caracteres)</span>
+                                </label>
+                                <div class="input-wrapper">
+                                    <textarea id="prodDescricao" 
+                                              name="descricao" 
+                                              class="form-input form-textarea" 
+                                              placeholder="Notas sensoriais, origem dos grãos, sugestão de harmonização..." 
+                                              maxlength="250" 
+                                              rows="3" 
+                                              data-field-name="Descrição do Produto"
+                                              data-security-type="maxlength-text"></textarea>
+                                </div>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-prodDescricao"></span>
+                                    <span class="char-counter" id="cnt-prodDescricao">0 / 250</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fa-solid fa-rotate-left"></i> Limpar Formulário
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-plus-circle"></i> Cadastrar Produto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- TAB 3: REGISTROS E GESTÃO -->
+            <section class="tab-content" id="tab-registros">
+                <div class="records-container">
+                    <!-- Stat Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="statPessoas">0</span>
+                                <span class="stat-label">Pessoas Cadastradas</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fa-solid fa-mug-hot"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="statProdutos">0</span>
+                                <span class="stat-label">Produtos no Menu</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fa-solid fa-warehouse"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-value" id="statEstoque">0</span>
+                                <span class="stat-label">Itens em Estoque</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabela Pessoas -->
+                    <div class="card table-card">
+                        <div class="table-header">
+                            <h3><i class="fa-solid fa-user-group"></i> Clientes & Funcionários Cadastrados</h3>
+                            <button class="btn btn-sm btn-outline" id="btnRefreshPessoas">
+                                <i class="fa-solid fa-arrows-rotate"></i> Atualizar
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="tablePessoas">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>CPF</th>
+                                        <th>E-mail</th>
+                                        <th>Telefone</th>
+                                        <th>Tipo / Vínculo</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Preenchido via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Tabela Produtos -->
+                    <div class="card table-card">
+                        <div class="table-header">
+                            <h3><i class="fa-solid fa-store"></i> Menu de Produtos Cadastrados</h3>
+                            <button class="btn btn-sm btn-outline" id="btnRefreshProdutos">
+                                <i class="fa-solid fa-arrows-rotate"></i> Atualizar
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="tableProdutos">
+                                <thead>
+                                    <tr>
+                                        <th>SKU</th>
+                                        <th>Produto</th>
+                                        <th>Categoria</th>
+                                        <th>Preço</th>
+                                        <th>Estoque</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Preenchido via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: MANUAL EXPLICATIVO DE SEGURANÇA E UX -->
+            <section class="tab-content" id="tab-guia">
+                <div class="card guide-card">
+                    <div class="guide-header">
+                        <div class="guide-title-badge">
+                            <i class="fa-solid fa-shield-virus"></i> Fundamentos de Segurança & UX
+                        </div>
+                        <h2>Por que estes 4 recursos são indispensáveis no Front-End?</h2>
+                        <p>Explicação técnica e acadêmica elaborada para a disciplina de <strong>Segurança em Sistemas da Informação (FICR)</strong>.</p>
+                    </div>
+
+                    <div class="guide-grid">
+                        <!-- Card 1: Limite de Caracteres -->
+                        <div class="guide-item">
+                            <div class="guide-item-header">
+                                <div class="guide-number">1</div>
+                                <div>
+                                    <h3>Limite de Caracteres (`maxlength` e JS)</h3>
+                                    <span class="tech-tag">Segurança • Performance • UX</span>
+                                </div>
+                            </div>
+                            <div class="guide-body">
+                                <h4><i class="fa-solid fa-lock"></i> Impacto em Segurança:</h4>
+                                <p>Previne ataques de <strong>Buffer Overflow</strong> em nível de aplicação (quando payloads gigantescos tentam estourar a memória alocada ou estourar a coluna do banco de dados) e impede ataques de <strong>Payload Flooding / DoS</strong>, onde atacantes enviam megabytes de texto em um único campo de formulário para consumir banda e processamento do servidor.</p>
+                                
+                                <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Impacto em UX:</h4>
+                                <p>Evita que o usuário cometa o engano de digitar textos excessivamente longos sem saber que serão cortados no banco de dados. O contador dinâmico em tempo real fornece um feedback constante sobre quanto espaço restou.</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Campos Obrigatórios -->
+                        <div class="guide-item">
+                            <div class="guide-item-header">
+                                <div class="guide-number">2</div>
+                                <div>
+                                    <h3>Campos Obrigatórios (`required` e Pré-validação)</h3>
+                                    <span class="tech-tag">Consistência • Integridade</span>
+                                </div>
+                            </div>
+                            <div class="guide-body">
+                                <h4><i class="fa-solid fa-lock"></i> Impacto em Segurança:</h4>
+                                <p>Garante a <strong>consistência de estado da aplicação</strong> antes que qualquer objeto seja instanciado ou enviado para a rede. Evita exceções do tipo <i>NullPointerException</i> ou estados de dados corrompidos no backend/banco de dados por ausência de atributos essenciais.</p>
+                                
+                                <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Impacto em UX:</h4>
+                                <p>Sinaliza claramente o contrato entre a interface e o usuário (asterisco visual e destaque em vermelho no foco), impedindo o envio acidental e frustrante de formulários incompletos.</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Máscaras de Entrada -->
+                        <div class="guide-item">
+                            <div class="guide-item-header">
+                                <div class="guide-number">3</div>
+                                <div>
+                                    <h3>Máscaras de Entrada (CPF, Telefone, CEP, Moeda)</h3>
+                                    <span class="tech-tag">Sanitização • Padronização</span>
+                                </div>
+                            </div>
+                            <div class="guide-body">
+                                <h4><i class="fa-solid fa-lock"></i> Impacto em Segurança:</h4>
+                                <p>Atua como a primeira barreira de <strong>sanitização de input</strong>. Bloqueia ativamente a digitação de caracteres especiais maliciosos (como aspas simples <code>'</code>, tags HTML <code>&lt;script&gt;</code> ou comandos SQL) em campos puramente numéricos como CPF, Telefone e Preço, reduzindo drasticamente superfícies de ataque como XSS e Injection.</p>
+                                
+                                <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Impacto em UX:</h4>
+                                <p>Fornece formatação visual automática (pontuação de CPF, parênteses do DDD e símbolo R$), eliminando a dúvida do usuário se deve ou não digitar os pontos e traços.</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Tipagem de Inputs -->
+                        <div class="guide-item">
+                            <div class="guide-item-header">
+                                <div class="guide-number">4</div>
+                                <div>
+                                    <h3>Tipagem de Inputs (`type="email"`, `number`, `tel`)</h3>
+                                    <span class="tech-tag">Validação Nativa • Acessibilidade</span>
+                                </div>
+                            </div>
+                            <div class="guide-body">
+                                <h4><i class="fa-solid fa-lock"></i> Impacto em Segurança:</h4>
+                                <p>Aproveita o motor de validação estrita e nativo do navegador (*HTML5 Form Validation*). O navegador rejeita o envio de dados que não estejam de acordo com a sintaxe exigida (ex: e-mail sem <code>@</code> ou domínio), reduzindo tráfego inútil para o servidor.</p>
+                                
+                                <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Impacto em UX:</h4>
+                                <p>Em dispositivos móveis (smartphones e tablets), ativa automaticamente o teclado otimizado (teclado virtual com <code>@</code> e <code>.com</code> para e-mail, ou teclado numérico limpo para telefone/estoque), facilitando imensamente a digitação e acessibilidade.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Right Inspector Sidebar (Real-time Security Inspector) -->
+        <aside class="inspector-sidebar">
+            <div class="card inspector-card">
+                <div class="inspector-header">
+                    <div class="live-indicator">
+                        <span class="dot"></span> LIVE INSPECTOR
+                    </div>
+                    <h3><i class="fa-solid fa-shield-cat"></i> Inspetor de Segurança em Tempo Real</h3>
+                    <p>Clique ou digite em qualquer campo do formulário para visualizar como o Front-End está protegendo a aplicação.</p>
+                </div>
+
+                <div class="inspector-content" id="inspectorContent">
+                    <div class="inspector-placeholder">
+                        <i class="fa-solid fa-hand-pointer"></i>
+                        <p>Selecione um campo em qualquer formulário para ativar o inspetor.</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/masks.js"></script>
+    <script src="js/validation.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
