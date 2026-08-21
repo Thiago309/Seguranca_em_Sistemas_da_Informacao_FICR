@@ -192,6 +192,23 @@
                                     <span class="error-msg" id="err-pessoaTipo"></span>
                                 </div>
                             </div>
+
+                            <!-- Termos de Uso (Checkbox Obrigatório) -->
+                            <div class="form-group form-group-full form-group-checkbox">
+                                <label class="checkbox-label" for="pessoaTermos">
+                                    <input type="checkbox" 
+                                           id="pessoaTermos" 
+                                           name="termos" 
+                                           class="form-checkbox" 
+                                           required 
+                                           data-field-name="Termos de Uso de Pessoas"
+                                           data-security-type="required-checkbox">
+                                    <span>Eu li e aceito os <a href="#" class="terms-link" onclick="event.preventDefault(); alert('Políticas e Termos de Uso de Pessoas do Café Artesanal:\n\n1. Coleta de Dados: Coletamos Nome, CPF, E-mail e Telefone para fins de cadastro.\n2. Finalidade: Cadastro de Clientes VIP (Clube de Fidelidade) ou de Funcionários/Baristas.\n3. Direitos (LGPD): Você pode solicitar a remoção dos seus dados a qualquer momento excluindo o registro.\n4. Consentimento: Ao marcar esta opção, você consente explicitamente com estes termos.')">Termos de Uso e Política de Privacidade</a> <span class="required-star">*</span></span>
+                                </label>
+                                <div class="input-meta">
+                                    <span class="error-msg" id="err-pessoaTermos"></span>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="form-actions">
@@ -354,9 +371,26 @@
                                               data-field-name="Descrição do Produto"
                                               data-security-type="maxlength-text"></textarea>
                                 </div>
+                                 <div class="input-meta">
+                                     <span class="error-msg" id="err-prodDescricao"></span>
+                                     <span class="char-counter" id="cnt-prodDescricao">0 / 250</span>
+                                 </div>
+                            </div>
+
+                            <!-- Termos de Uso (Checkbox Obrigatório) -->
+                            <div class="form-group form-group-full form-group-checkbox">
+                                <label class="checkbox-label" for="prodTermos">
+                                    <input type="checkbox" 
+                                           id="prodTermos" 
+                                           name="termos" 
+                                           class="form-checkbox" 
+                                           required 
+                                           data-field-name="Termos de Cadastro de Produtos"
+                                           data-security-type="required-checkbox">
+                                    <span>Declaro que as informações e especificações técnicas deste produto estão em conformidade com as <a href="#" class="terms-link" onclick="event.preventDefault(); alert('Normas de Cadastro de Produtos do Café Artesanal:\n\n1. Integridade de Dados: O preço deve refletir a política comercial do estabelecimento.\n2. Controle Tributário (SKU): O SKU deve ser único e seguir a padronização para emissão fiscal.\n3. Controle Sanitário: O produto atende a todas as regulamentações de segurança e validade de alimentos.\n4. Responsabilidade: O cadastrador assume a veracidade dos dados inseridos.')">diretrizes e normas da cafeteria</a> <span class="required-star">*</span></span>
+                                </label>
                                 <div class="input-meta">
-                                    <span class="error-msg" id="err-prodDescricao"></span>
-                                    <span class="char-counter" id="cnt-prodDescricao">0 / 250</span>
+                                    <span class="error-msg" id="err-prodTermos"></span>
                                 </div>
                             </div>
                         </div>

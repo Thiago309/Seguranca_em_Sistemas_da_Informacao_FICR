@@ -65,6 +65,13 @@ const SecurityExplanations = {
         uxTag: "Contador de Caracteres Amplo",
         securityDesc: "Controla áreas de texto livre (textarea), prevenindo que descrições gigantescas ultrapassem os limites de armazenamento alocados no banco.",
         uxDesc: "Dá visibilidade instantânea de quantos caracteres de detalhes ainda podem ser adicionados."
+    },
+    "required-checkbox": {
+        field: "Termos de Uso & Consentimento",
+        securityTag: "Não-Repúdio & Compliance",
+        uxTag: "Transparência & Acessibilidade",
+        securityDesc: "Exigir o aceite explícito dos termos garante conformidade com leis de proteção de dados (como LGPD) e estabelece o princípio de não-repúdio, comprovando que o usuário consentiu com as regras de negócio e políticas de privacidade antes do processamento dos dados.",
+        uxDesc: "Informa claramente ao usuário seus direitos e obrigações através de um link direto para os termos. A validação visual destaca a caixa de seleção e impede o envio sem o consentimento intencional."
     }
 };
 
@@ -99,13 +106,20 @@ const ValidationEngine = {
         let errorMsg = "";
 
         // 1. Campo Obrigatório (Required)
-        if (inputEl.hasAttribute('required') && (!inputEl.value || inputEl.value.trim() === "")) {
-            isValid = false;
-            errorMsg = `${fieldName} é um campo obrigatório.`;
+        if (inputEl.hasAttribute('required')) {
+            if (inputEl.type === 'checkbox' || inputEl.getAttribute('type') === 'checkbox') {
+                if (!inputEl.checked) {
+                    isValid = false;
+                    errorMsg = `Você deve aceitar os ${fieldName}.`;
+                }
+            } else if (!inputEl.value || inputEl.value.trim() === "") {
+                isValid = false;
+                errorMsg = `${fieldName} é um campo obrigatório.`;
+            }
         }
 
-        // 2. Validação por Tipo de Input & Conteúdo (se preenchido)
-        if (isValid && inputEl.value.trim() !== "") {
+        // 2. Validação por Tipo de Input & Conteúdo (se preenchido e não for checkbox)
+        if (isValid && inputEl.type !== 'checkbox' && inputEl.value.trim() !== "") {
             const inputType = inputEl.getAttribute('type');
             const securityType = inputEl.dataset.securityType;
 

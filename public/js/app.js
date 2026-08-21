@@ -65,6 +65,12 @@ document.addEventListener('DOMContentLoaded', () => {
             updateInspector(input); // Recarrega inspetor com contadores atualizados
         });
 
+        // Evento de Alteração de Estado (importante para checkboxes e selects)
+        input.addEventListener('change', () => {
+            window.ValidationEngine.validateField(input);
+            updateInspector(input);
+        });
+
         // Evento de Saída (Blur)
         input.addEventListener('blur', () => {
             window.ValidationEngine.validateField(input);
@@ -105,8 +111,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const maxLen = inputEl.getAttribute('maxlength');
-        const curLen = inputEl.value.length;
+        const curLen = inputEl.value ? inputEl.value.length : 0;
         const isReq = inputEl.hasAttribute('required');
+
+        let stateLine = `<li><strong>Estado Atual:</strong> ${curLen} caracteres digitados</li>`;
+        let limitLine = `<li><strong>Limite Maxlength:</strong> ${maxLen ? `${maxLen} caracteres` : 'Não definido'}</li>`;
+
+        if (inputEl.type === 'checkbox') {
+            stateLine = `<li><strong>Estado Atual:</strong> ${inputEl.checked ? '<span style="color:var(--success); font-weight:600;">Marcado (Aceito)</span>' : '<span style="color:var(--error); font-weight:600;">Desmarcado</span>'}</li>`;
+            limitLine = '';
+        }
 
         inspectorContent.innerHTML = `
             <div class="inspector-active-box">
@@ -131,8 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="insp-section-title"><i class="fa-solid fa-sliders"></i> Atributos Ativos no DOM:</div>
                     <ul style="list-style:none; font-size:0.8rem; color:var(--text-main); display:flex; flex-direction:column; gap:0.3rem;">
                         <li><strong>Obrigatoriedade:</strong> ${isReq ? '<span style="color:var(--error)">Required (Sim)</span>' : 'Opcional'}</li>
-                        <li><strong>Limite Maxlength:</strong> ${maxLen ? `${maxLen} caracteres` : 'Não definido'}</li>
-                        <li><strong>Estado Atual:</strong> ${curLen} caracteres digitados</li>
+                        ${limitLine}
+                        ${stateLine}
                         <li><strong>Tipo Nativo:</strong> <code>type="${inputEl.getAttribute('type') || 'text'}"</code></li>
                     </ul>
                 </div>
