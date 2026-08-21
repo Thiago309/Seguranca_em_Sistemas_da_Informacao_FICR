@@ -33,6 +33,9 @@ O objetivo central do projeto é demonstrar, na prática e na teoria, a implemen
    ```bash
    npm.cmd start
    ```
+   ```bash
+   npm run dev
+   ```
 
 3. **Acessar no Navegador**:
    Acesse a URL: `http://localhost:3000`
