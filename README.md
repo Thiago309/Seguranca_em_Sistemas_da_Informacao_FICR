@@ -1,4 +1,4 @@
-# ☕ Café Artisanal - Sistema de Cadastro com Segurança SSI & UX no Front-End
+# ☕ Café Artesanal - Sistema de Cadastro com Segurança SSI & UX no Front-End
 
 > **Disciplina**: Segurança em Sistemas da Informação (FICR)  
 > **Tecnologias**: Node.js, Express, HTML5 Semântico, Vanilla CSS3 (Dark Coffee Theme), Vanilla JavaScript (ES6+).
