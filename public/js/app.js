@@ -1,5 +1,5 @@
 /**
- * Controlador Principal da Aplicação Front-End (Café Artisanal)
+ * Controlador Principal da Aplicação Front-End (Café Artesanal)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
