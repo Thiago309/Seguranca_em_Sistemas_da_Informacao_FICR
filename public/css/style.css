@@ -913,3 +913,156 @@ body {
         flex-wrap: wrap;
     }
 }
+
+/* ==========================================================================
+   MÓDULO DE AUTENTICAÇÃO JWT — Login Modal & Status Badge
+   ========================================================================== */
+
+/* Badge de Status JWT no Header */
+.badge-jwt {
+    background: rgba(230, 57, 70, 0.15);
+    color: var(--error);
+    border: 1px solid rgba(230, 57, 70, 0.35);
+    padding: 0.4rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: var(--transition);
+}
+
+.badge-jwt.authenticated {
+    background: rgba(42, 157, 143, 0.15);
+    color: var(--success);
+    border-color: rgba(42, 157, 143, 0.35);
+}
+
+.btn-logout {
+    padding: 0.4rem 0.8rem;
+    background: rgba(230, 57, 70, 0.12);
+    color: var(--error);
+    border: 1px solid rgba(230, 57, 70, 0.3);
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: var(--transition);
+    font-family: 'Outfit', sans-serif;
+}
+
+.btn-logout:hover {
+    background: var(--error);
+    color: #fff;
+}
+
+/* Overlay do Modal de Login */
+.login-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 6, 4, 0.92);
+    backdrop-filter: blur(16px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.login-overlay.hidden {
+    display: none;
+}
+
+/* Card do Modal de Login */
+.login-modal {
+    background: rgba(30, 20, 14, 0.98);
+    border: 1px solid rgba(212, 163, 115, 0.3);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), var(--shadow-glow);
+    animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.login-brand {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.login-brand h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    color: var(--primary);
+    margin-bottom: 0.3rem;
+}
+
+.login-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.login-subtitle strong {
+    color: var(--accent);
+}
+
+.security-badge-login {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: rgba(42, 157, 143, 0.1);
+    border: 1px solid rgba(42, 157, 143, 0.25);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 1rem;
+    font-size: 0.82rem;
+    color: var(--success);
+    margin-bottom: 1.8rem;
+}
+
+.login-error {
+    background: var(--error-bg);
+    border: 1px solid rgba(230, 57, 70, 0.35);
+    border-radius: var(--radius-sm);
+    color: var(--error);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.login-demo-hint {
+    margin-top: 1.5rem;
+    padding: 0.8rem 1rem;
+    background: rgba(212, 163, 115, 0.07);
+    border: 1px dashed rgba(212, 163, 115, 0.2);
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.7;
+}
+
+.login-demo-hint i {
+    color: var(--accent);
+    margin-right: 0.3rem;
+}
+
+.login-demo-hint code {
+    background: rgba(212, 163, 115, 0.12);
+    color: var(--primary);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.82rem;
+}
+

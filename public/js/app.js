@@ -1,9 +1,135 @@
 /**
- * Controlador Principal da Aplicação Front-End (Café Artesanal)
+ * Controlador Principal da Aplicação Front-End (Café Artisanal)
+ * Atualizado com suporte a Autenticação JWT
  */
 
+// ============================================================
+// MÓDULO DE AUTENTICAÇÃO JWT (Front-End)
+// O token é armazenado em sessionStorage (não localStorage),
+// pois sessionStorage é limpo ao fechar a aba (mais seguro).
+// ============================================================
+const Auth = {
+    TOKEN_KEY: 'cafe_jwt_token',
+    USER_KEY:  'cafe_user',
+
+    getToken()  { return sessionStorage.getItem(this.TOKEN_KEY); },
+    getUser()   { const u = sessionStorage.getItem(this.USER_KEY); return u ? JSON.parse(u) : null; },
+    isLogged()  { return !!this.getToken(); },
+
+    save(token, user) {
+        sessionStorage.setItem(this.TOKEN_KEY, token);
+        sessionStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    },
+
+    clear() {
+        sessionStorage.removeItem(this.TOKEN_KEY);
+        sessionStorage.removeItem(this.USER_KEY);
+    },
+
+    /**
+     * Retorna os headers corretos para cada tipo de requisição.
+     * Requisições protegidas (escrita) incluem o JWT no header Authorization.
+     */
+    headers(isProtected = false) {
+        const h = { 'Content-Type': 'application/json' };
+        if (isProtected && this.getToken()) {
+            h['Authorization'] = `Bearer ${this.getToken()}`;
+        }
+        return h;
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Referências do DOM
+    // Elementos do Modal de Login
+    const loginOverlay   = document.getElementById('loginOverlay');
+    const formLogin      = document.getElementById('formLogin');
+    const loginError     = document.getElementById('loginError');
+    const btnLogout      = document.getElementById('btnLogout');
+    const jwtStatusBadge = document.getElementById('jwtStatusBadge');
+    const jwtStatusText  = document.getElementById('jwtStatusText');
+
+    // =========================================================================
+    // SISTEMA DE LOGIN JWT
+    // =========================================================================
+
+    function updateAuthUI() {
+        const user = Auth.getUser();
+        if (Auth.isLogged() && user) {
+            loginOverlay.classList.add('hidden');
+            jwtStatusBadge.classList.add('authenticated');
+            jwtStatusText.textContent = `${user.nome} (${user.perfil})`;
+            btnLogout.style.display = 'flex';
+        } else {
+            loginOverlay.classList.remove('hidden');
+            jwtStatusBadge.classList.remove('authenticated');
+            jwtStatusText.textContent = 'Não Autenticado';
+            btnLogout.style.display = 'none';
+        }
+    }
+
+    // Checa se já existe sessão ativa ao carregar
+    updateAuthUI();
+
+    // Formulário de Login
+    formLogin.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btnSubmit = document.getElementById('btnLoginSubmit');
+        const usuario = document.getElementById('loginUsuario').value.trim();
+        const senha   = document.getElementById('loginSenha').value;
+
+        loginError.style.display = 'none';
+
+        if (!usuario || !senha) {
+            loginError.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Preencha usuário e senha.';
+            loginError.style.display = 'flex';
+            return;
+        }
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Autenticando...';
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, senha })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                Auth.save(data.token, data.usuario);
+                updateAuthUI();
+                loadRecords();
+            } else {
+                loginError.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${data.error || 'Credenciais inválidas.'}`;
+                loginError.style.display = 'flex';
+            }
+        } catch (err) {
+            loginError.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Falha de conexão com o servidor.';
+            loginError.style.display = 'flex';
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Entrar no Sistema';
+        }
+    });
+
+    // Logout
+    btnLogout.addEventListener('click', async () => {
+        try {
+            await fetch('/api/auth/logout', {
+                method: 'POST',
+                headers: Auth.headers(true)
+            });
+        } catch (_) {}
+        Auth.clear();
+        document.getElementById('loginSenha').value = '';
+        document.getElementById('loginUsuario').value = '';
+        loginError.style.display = 'none';
+        updateAuthUI();
+    });
+
+
     const mainTabs = document.getElementById('mainTabs');
     const tabButtons = mainTabs.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -179,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/pessoas', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: Auth.headers(true),
                 body: JSON.stringify(formData)
             });
 
@@ -224,7 +350,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/produtos', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: Auth.headers(true),
                 body: JSON.stringify(formData)
             });
 
@@ -331,7 +457,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.deletePessoa = async function(id) {
         if (!confirm("Deseja realmente remover esta pessoa?")) return;
         try {
-            const res = await fetch(`/api/pessoas/${id}`, { method: 'DELETE' });
+            const res = await fetch(`/api/pessoas/${id}`, {
+                method: 'DELETE',
+                headers: Auth.headers(true)
+            });
             const data = await res.json();
             if (data.success) {
                 showToast("Pessoa removida com sucesso.", "info");
@@ -345,7 +474,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.deleteProduto = async function(id) {
         if (!confirm("Deseja realmente remover este produto do menu?")) return;
         try {
-            const res = await fetch(`/api/produtos/${id}`, { method: 'DELETE' });
+            const res = await fetch(`/api/produtos/${id}`, {
+                method: 'DELETE',
+                headers: Auth.headers(true)
+            });
             const data = await res.json();
             if (data.success) {
                 showToast("Produto removido com sucesso.", "info");
