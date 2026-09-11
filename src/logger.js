@@ -1,5 +1,5 @@
 /**
- * Logger Customizado — Café Artisanal Security Back-End
+ * Logger Customizado — Café Artesanal Security Back-End
  * Exibe logs coloridos no terminal com níveis: INFO, WARN, ERROR, SECURITY
  *
  * Por que é importante:
@@ -67,7 +67,7 @@ const logger = {
     banner() {
         const line = '═'.repeat(58);
         console.log(`\n${COLORS.SUCCESS}${BOLD}╔${line}╗${RESET}`);
-        console.log(`${COLORS.SUCCESS}${BOLD}║${RESET}  ☕  ${BOLD}CAFÉ ARTISANAL — BACK-END SEGURO${RESET}${' '.repeat(21)}${COLORS.SUCCESS}${BOLD}║${RESET}`);
+        console.log(`${COLORS.SUCCESS}${BOLD}║${RESET}  ☕  ${BOLD}CAFÉ ARTESANAL — BACK-END SEGURO${RESET}${' '.repeat(21)}${COLORS.SUCCESS}${BOLD}║${RESET}`);
         console.log(`${COLORS.SUCCESS}${BOLD}║${RESET}  🛡️   Segurança em Sistemas da Informação — FICR${' '.repeat(10)}${COLORS.SUCCESS}${BOLD}║${RESET}`);
         console.log(`${COLORS.SUCCESS}${BOLD}╚${line}╝${RESET}`);
     },

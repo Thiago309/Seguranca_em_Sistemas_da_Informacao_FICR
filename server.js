@@ -1,6 +1,6 @@
 /**
  * ============================================================
- * CAFÉ ARTISANAL — SERVIDOR NODE.JS COM BACK-END SEGURO
+ * CAFÉ ARTESANAL — SERVIDOR NODE.JS COM BACK-END SEGURO
  * Disciplina: Segurança em Sistemas da Informação (FICR)
  * ============================================================
  *
@@ -50,6 +50,7 @@ app.use(helmet({
             styleSrc:   ["'self'", "'unsafe-inline'", 'fonts.googleapis.com', 'cdnjs.cloudflare.com'],
             fontSrc:    ["'self'", 'fonts.gstatic.com', 'cdnjs.cloudflare.com'],
             scriptSrc:  ["'self'", "'unsafe-inline'", 'cdnjs.cloudflare.com'],
+            scriptSrcAttr: ["'unsafe-inline'"],
             imgSrc:     ["'self'", 'data:'],
             connectSrc: ["'self'"],
         }

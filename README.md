@@ -133,7 +133,7 @@ O arquivo `.env` já vem pré-configurado. Se desejar conectar à sua própria c
 4. Preencha no arquivo `.env`:
    ```env
    PORT=3000
-   JWT_SECRET=cafe_Artesanal_super_secret_jwt_key_2025_ficr_seguranca
+   JWT_SECRET=cafe_artesanal_super_secret_jwt_key_2025_ficr_seguranca
    SUPABASE_URL=https://seuid.supabase.co
    SUPABASE_KEY=sua-chave-api-aqui
    ```
@@ -152,7 +152,7 @@ Você verá o banner e os logs de segurança no terminal:
 
 ```text
 ╔══════════════════════════════════════════════════════════╗
-║  ☕  CAFÉ Artesanal — BACK-END SEGURO                     ║
+║  ☕  CAFÉ ARTESANAL — BACK-END SEGURO                     ║
 ║  🛡️   Segurança em Sistemas da Informação — FICR          ║
 ╚══════════════════════════════════════════════════════════╝
 

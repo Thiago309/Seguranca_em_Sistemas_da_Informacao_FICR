@@ -1,5 +1,5 @@
 /**
- * Middleware de Autenticação JWT — Café Artisanal
+ * Middleware de Autenticação JWT — Café Artesanal
  *
  * Por que JWT (JSON Web Token):
  * JWT é o padrão RFC 7519 para autenticação stateless em APIs REST.

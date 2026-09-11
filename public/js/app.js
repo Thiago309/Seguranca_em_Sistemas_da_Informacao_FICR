@@ -1,5 +1,5 @@
 /**
- * Controlador Principal da Aplicação Front-End (Café Artisanal)
+ * Controlador Principal da Aplicação Front-End (Café Artesanal)
  * Atualizado com suporte a Autenticação JWT
  */
 
@@ -423,8 +423,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${escapeHtml(p.telefone)}</td>
                 <td><span class="type-pill">${escapeHtml(p.tipo)}</span></td>
                 <td>
-                    <button class="btn-danger-icon" onclick="deletePessoa('${p.id}')" title="Excluir Registro">
-                        <i class="fa-solid fa-trash-can"></i>
+                    <button class="btn-danger-icon btn-delete-pessoa" data-id="${p.id}" onclick="deletePessoa('${p.id}')" title="Excluir Registro">
+                        <i class="fa-solid fa-trash-can" style="pointer-events: none;"></i>
                     </button>
                 </td>
             </tr>
@@ -445,46 +445,102 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><span class="price-tag">R$ ${p.preco.toFixed(2).replace('.', ',')}</span></td>
                 <td>${p.estoque} un.</td>
                 <td>
-                    <button class="btn-danger-icon" onclick="deleteProduto('${p.id}')" title="Excluir Produto">
-                        <i class="fa-solid fa-trash-can"></i>
+                    <button class="btn-danger-icon btn-delete-produto" data-id="${p.id}" onclick="deleteProduto('${p.id}')" title="Excluir Produto">
+                        <i class="fa-solid fa-trash-can" style="pointer-events: none;"></i>
                     </button>
                 </td>
             </tr>
         `).join('');
     }
 
-    // Exclusão via API
+    let isBusyDeleting = false;
+
+    // Delegação de eventos nas tabelas (suporta tanto clique direto quanto bloqueios restritivos de CSP inline)
+    tablePessoasBody.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-delete-pessoa');
+        if (btn) {
+            const id = btn.getAttribute('data-id');
+            if (id && !isBusyDeleting) deletePessoa(id);
+        }
+    });
+
+    tableProdutosBody.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-delete-produto');
+        if (btn) {
+            const id = btn.getAttribute('data-id');
+            if (id && !isBusyDeleting) deleteProduto(id);
+        }
+    });
+
+    // Exclusão de Pessoa via API
     window.deletePessoa = async function(id) {
+        if (isBusyDeleting) return;
+        if (!Auth.isLogged()) {
+            showToast("Autenticação necessária para excluir registros.", "error");
+            loginOverlay.classList.remove('hidden');
+            return;
+        }
         if (!confirm("Deseja realmente remover esta pessoa?")) return;
+
+        isBusyDeleting = true;
         try {
             const res = await fetch(`/api/pessoas/${id}`, {
                 method: 'DELETE',
                 headers: Auth.headers(true)
             });
             const data = await res.json();
-            if (data.success) {
+            if (res.ok && data.success) {
                 showToast("Pessoa removida com sucesso.", "info");
                 loadRecords();
+            } else {
+                if (res.status === 401) {
+                    showToast("Sessão expirada. Faça login novamente.", "error");
+                    Auth.clear();
+                    updateAuthUI();
+                } else {
+                    showToast(data.error || "Erro ao excluir pessoa.", "error");
+                }
             }
         } catch (err) {
-            showToast("Erro ao excluir pessoa.", "error");
+            showToast("Erro de conexão ao excluir pessoa.", "error");
+        } finally {
+            setTimeout(() => { isBusyDeleting = false; }, 300);
         }
     };
 
+    // Exclusão de Produto via API
     window.deleteProduto = async function(id) {
+        if (isBusyDeleting) return;
+        if (!Auth.isLogged()) {
+            showToast("Autenticação necessária para excluir produtos.", "error");
+            loginOverlay.classList.remove('hidden');
+            return;
+        }
         if (!confirm("Deseja realmente remover este produto do menu?")) return;
+
+        isBusyDeleting = true;
         try {
             const res = await fetch(`/api/produtos/${id}`, {
                 method: 'DELETE',
                 headers: Auth.headers(true)
             });
             const data = await res.json();
-            if (data.success) {
+            if (res.ok && data.success) {
                 showToast("Produto removido com sucesso.", "info");
                 loadRecords();
+            } else {
+                if (res.status === 401) {
+                    showToast("Sessão expirada. Faça login novamente.", "error");
+                    Auth.clear();
+                    updateAuthUI();
+                } else {
+                    showToast(data.error || "Erro ao excluir produto.", "error");
+                }
             }
         } catch (err) {
-            showToast("Erro ao excluir produto.", "error");
+            showToast("Erro de conexão ao excluir produto.", "error");
+        } finally {
+            setTimeout(() => { isBusyDeleting = false; }, 300);
         }
     };
 

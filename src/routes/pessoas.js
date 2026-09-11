@@ -1,5 +1,5 @@
 /**
- * Rotas de Pessoas — Café Artisanal
+ * Rotas de Pessoas — Café Artesanal
  * Todas as operações usam chamadas parametrizadas (anti SQL Injection)
  * Todas as operações geram logs detalhados no terminal e trilha de auditoria
  * Suporta Supabase (PostgreSQL Cloud) e fallback SQLite

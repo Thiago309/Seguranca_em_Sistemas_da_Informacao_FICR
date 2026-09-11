@@ -1,5 +1,5 @@
 -- ============================================================
--- CAFÉ ARTISANAL — ESQUEMA DO BANCO DE DADOS SUPABASE (PostgreSQL)
+-- CAFÉ ARTESANAL — ESQUEMA DO BANCO DE DADOS SUPABASE (PostgreSQL)
 -- Disciplina: Segurança em Sistemas da Informação — FICR
 -- ============================================================
 --

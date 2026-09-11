@@ -1,5 +1,5 @@
 /**
- * Configurações de Rate Limiting — Café Artisanal
+ * Configurações de Rate Limiting — Café Artesanal
  *
  * Por que Rate Limiting:
  * Sem limitação de taxa, a API fica exposta a:

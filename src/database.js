@@ -1,5 +1,5 @@
 /**
- * Módulo de Banco de Dados — Supabase & Fallback Local (Café Artisanal)
+ * Módulo de Banco de Dados — Supabase & Fallback Local (Café Artesanal)
  * Disciplina: Segurança em Sistemas da Informação (FICR)
  *
  * Princípios de Segurança:
