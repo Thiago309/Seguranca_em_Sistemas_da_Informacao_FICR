@@ -1,13 +1,14 @@
 /**
  * Rotas de Pessoas — Café Artisanal
- * Todas as queries usam Prepared Statements (anti SQL Injection)
- * Todas as operações geram logs detalhados no terminal
+ * Todas as operações usam chamadas parametrizadas (anti SQL Injection)
+ * Todas as operações geram logs detalhados no terminal e trilha de auditoria
+ * Suporta Supabase (PostgreSQL Cloud) e fallback SQLite
  */
 
 const express = require('express');
 const router  = express.Router();
 const logger  = require('../logger');
-const { queries } = require('../database');
+const db      = require('../database');
 const { verifyToken } = require('../middlewares/auth');
 
 // Helper de sanitização server-side
@@ -18,21 +19,22 @@ function sanitize(str) {
 
 /**
  * GET /api/pessoas
- * Rota pública — retorna lista de pessoas do banco SQLite.
- * Usa Prepared Statement: SELECT * FROM pessoas ORDER BY id DESC
+ * Rota pública — retorna lista de pessoas do banco de dados.
  */
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
     const ip = req.ip || req.connection.remoteAddress;
     try {
-        const pessoas = queries.getAllPessoas.all();
+        const pessoas = await db.pessoas.getAll();
         logger.info('Listagem de pessoas consultada', {
             ip,
+            banco: db.getDriverName(),
             registros: pessoas.length
         });
         res.json({ success: true, count: pessoas.length, data: pessoas });
     } catch (err) {
         logger.error('Erro ao buscar pessoas no banco de dados', {
             ip,
+            banco: db.getDriverName(),
             detalhe: err.message
         });
         res.status(500).json({ success: false, error: 'Erro interno ao consultar dados.' });
@@ -41,14 +43,9 @@ router.get('/', (req, res) => {
 
 /**
  * POST /api/pessoas
- * Rota PROTEGIDA por JWT — cadastra nova pessoa no banco SQLite.
- * Usa Prepared Statement: INSERT INTO pessoas (?, ?, ?, ?, ?)
- *
- * A defesa contra SQL Injection está na parametrização:
- * mesmo que o usuário envie: nome = "'; DROP TABLE pessoas; --"
- * o banco tratará esse texto como dado literal, não como código SQL.
+ * Rota PROTEGIDA por JWT — cadastra nova pessoa no banco de dados.
  */
-router.post('/', verifyToken, (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
     const ip = req.ip || req.connection.remoteAddress;
     const operador = req.user?.usuario || 'desconhecido';
 
@@ -73,18 +70,34 @@ router.post('/', verifyToken, (req, res) => {
             faltando: [!nome && 'nome', !cpf && 'cpf', !email && 'email',
                        !telefone && 'telefone', !tipo && 'tipo'].filter(Boolean).join(', ')
         });
+        db.logsAuditoria.insert({
+            nivel: 'WARN',
+            mensagem: 'Cadastro de pessoa rejeitado: campos obrigatórios ausentes',
+            detalhes: { operador, email },
+            ip,
+            operador
+        }).catch(() => {});
+
         return res.status(400).json({
             success: false,
             error: 'Todos os campos obrigatórios devem ser preenchidos.'
         });
     }
 
-    // Validação de tamanhos (defesa extra contra buffer overflow)
+    // Validação de tamanhos (defesa extra contra buffer overflow em nível de aplicação)
     if (nome.length > 80 || email.length > 100 || cpf.length > 14 || telefone.length > 15) {
         logger.security('Cadastro de pessoa bloqueado: limite de caracteres excedido', {
             operador, ip,
             nome_len: nome.length, email_len: email.length
         });
+        db.logsAuditoria.insert({
+            nivel: 'SECURITY',
+            mensagem: 'Tentativa de Buffer Overflow: limite de caracteres excedido no cadastro de pessoa',
+            detalhes: { nome_len: nome.length, email_len: email.length },
+            ip,
+            operador
+        }).catch(() => {});
+
         return res.status(400).json({
             success: false,
             error: 'Limite de caracteres excedido em um ou mais campos.'
@@ -95,6 +108,14 @@ router.post('/', verifyToken, (req, res) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         logger.warn('Cadastro de pessoa rejeitado: e-mail inválido', { operador, ip, email });
+        db.logsAuditoria.insert({
+            nivel: 'WARN',
+            mensagem: 'Cadastro de pessoa rejeitado: formato de e-mail inválido',
+            detalhes: { email },
+            ip,
+            operador
+        }).catch(() => {});
+
         return res.status(400).json({
             success: false,
             error: 'Formato de e-mail inválido.'
@@ -102,17 +123,24 @@ router.post('/', verifyToken, (req, res) => {
     }
 
     try {
-        // INSERT parametrizado — os valores são tratados como dados puros pelo SQLite
-        const result = queries.insertPessoa.run(nome, cpf, email, telefone, tipo);
-        const novaPessoa = queries.getPessoaById.get(result.lastInsertRowid);
+        const novaPessoa = await db.pessoas.insert({ nome, cpf, email, telefone, tipo });
 
         logger.success('Pessoa cadastrada com sucesso', {
             operador,
             ip,
-            id: result.lastInsertRowid,
+            banco: db.getDriverName(),
+            id: novaPessoa.id,
             nome,
             tipo
         });
+
+        db.logsAuditoria.insert({
+            nivel: 'SUCCESS',
+            mensagem: `Pessoa cadastrada com sucesso: ${nome} (${tipo})`,
+            detalhes: { id: novaPessoa.id, nome, cpf, tipo },
+            ip,
+            operador
+        }).catch(() => {});
 
         res.status(201).json({
             success: true,
@@ -122,6 +150,7 @@ router.post('/', verifyToken, (req, res) => {
     } catch (err) {
         logger.error('Erro ao inserir pessoa no banco de dados', {
             operador, ip,
+            banco: db.getDriverName(),
             detalhe: err.message
         });
         res.status(500).json({ success: false, error: 'Erro interno ao salvar dados.' });
@@ -131,12 +160,8 @@ router.post('/', verifyToken, (req, res) => {
 /**
  * DELETE /api/pessoas/:id
  * Rota PROTEGIDA por JWT — remove pessoa pelo ID.
- * Usa Prepared Statement: DELETE FROM pessoas WHERE id = ?
- *
- * O parâmetro :id é passado com ? no Prepared Statement,
- * não concatenado na query, eliminando SQL Injection.
  */
-router.delete('/:id', verifyToken, (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
     const ip       = req.ip || req.connection.remoteAddress;
     const operador = req.user?.usuario || 'desconhecido';
     const { id }   = req.params;
@@ -147,6 +172,14 @@ router.delete('/:id', verifyToken, (req, res) => {
         logger.security('Tentativa de DELETE com ID inválido', {
             operador, ip, id_recebido: id
         });
+        db.logsAuditoria.insert({
+            nivel: 'SECURITY',
+            mensagem: 'Tentativa de DELETE com ID inválido em pessoas',
+            detalhes: { id_recebido: id },
+            ip,
+            operador
+        }).catch(() => {});
+
         return res.status(400).json({
             success: false,
             error: 'ID inválido.'
@@ -156,25 +189,35 @@ router.delete('/:id', verifyToken, (req, res) => {
     logger.info('Tentativa de remoção de pessoa', { operador, ip, id: idNum });
 
     try {
-        const pessoa = queries.getPessoaById.get(idNum);
+        const pessoa = await db.pessoas.getById(idNum);
         if (!pessoa) {
             logger.warn('Tentativa de remover pessoa inexistente', { operador, ip, id: idNum });
             return res.status(404).json({ success: false, error: 'Pessoa não encontrada.' });
         }
 
-        queries.deletePessoa.run(idNum);
+        await db.pessoas.delete(idNum);
 
         logger.success('Pessoa removida com sucesso', {
             operador,
             ip,
+            banco: db.getDriverName(),
             id: idNum,
             nome: pessoa.nome
         });
+
+        db.logsAuditoria.insert({
+            nivel: 'SUCCESS',
+            mensagem: `Pessoa removida: ${pessoa.nome} (ID ${idNum})`,
+            detalhes: { id: idNum, nome: pessoa.nome },
+            ip,
+            operador
+        }).catch(() => {});
 
         res.json({ success: true, message: 'Registro removido com sucesso.' });
     } catch (err) {
         logger.error('Erro ao deletar pessoa do banco de dados', {
             operador, ip, id: idNum,
+            banco: db.getDriverName(),
             detalhe: err.message
         });
         res.status(500).json({ success: false, error: 'Erro interno ao remover dado.' });

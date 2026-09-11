@@ -1,0 +1,19 @@
+# Dependências
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Variáveis de Ambiente e Credenciais (Segurança: NUNCA versionar segredos)
+.env
+.env.local
+.env.*.local
+
+# Banco de dados local
+database/*.db
+database/*.db-wal
+database/*.db-shm
+
+# Sistema operacional
+.DS_Store
+Thumbs.db

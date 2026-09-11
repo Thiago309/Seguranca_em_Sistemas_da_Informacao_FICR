@@ -6,12 +6,17 @@
  *
  * Artefatos de Segurança Implementados:
  *
- * 1. LOGS DETALHADOS  → morgan (HTTP) + logger customizado (eventos de segurança)
- * 2. SQL INJECTION     → better-sqlite3 com Prepared Statements em todas as queries
- * 3. RATE LIMITING     → express-rate-limit (login: 5/15min | api: 150/15min | escrita: 20/10min)
- * 4. JWT AUTH          → jsonwebtoken + bcryptjs para rotas de escrita e deleção
- * 5. HELMET            → 15+ cabeçalhos HTTP de segurança (CSP, HSTS, X-Frame, etc.)
+ * 1. SUPABASE / SQLITE → Banco de dados na nuvem / fallback local com Queries Parametrizadas
+ * 2. RBAC USUÁRIOS     → Tabela 'usuarios' com controle de acesso e senhas criptografadas em bcrypt
+ * 3. LOGS AUDITORIA    → Tabela 'logs_auditoria' com trilha forense de segurança
+ * 4. LOGS DETALHADOS   → morgan (HTTP) + logger customizado no terminal ([SECURITY], [WARN], [INFO])
+ * 5. RATE LIMITING      → express-rate-limit (login: 5/15min | api: 150/15min | escrita: 20/10min)
+ * 6. JWT AUTH           → jsonwebtoken + bcryptjs para rotas de escrita e deleção
+ * 7. HELMET             → 15+ cabeçalhos HTTP de segurança (CSP, HSTS, X-Frame, etc.)
+ * 8. SECRET MANAGEMENT  → dotenv + .gitignore para proteção de chaves de API
  */
+
+require('dotenv').config();
 
 const express    = require('express');
 const cors       = require('cors');
@@ -20,7 +25,7 @@ const morgan     = require('morgan');
 const helmet     = require('helmet');
 
 const logger     = require('./src/logger');
-const { queries } = require('./src/database');
+const db         = require('./src/database');
 const { loginLimiter, apiLimiter, writeLimiter } = require('./src/middlewares/rateLimiter');
 
 // Rotas modularizadas
@@ -35,7 +40,7 @@ const PORT = process.env.PORT || 3000;
 // 1. HELMET — Cabeçalhos HTTP de Segurança Avançados
 // ============================================================
 // Por que Helmet:
-// Substitui os 3 cabeçalhos manuais por ~15 políticas de segurança HTTP
+// Substitui os cabeçalhos manuais por ~15 políticas de segurança HTTP
 // que protegem contra Clickjacking, MIME Sniffing, XSS externo,
 // ataques de downgrade HTTPS (HSTS), vazamento de origem via Referer, etc.
 app.use(helmet({
@@ -100,7 +105,7 @@ app.use('/api/produtos', writeLimiter);
 app.use('/api/auth', loginLimiter, authRoutes);
 
 // ============================================================
-// 6. ROTAS DA API — CRUD com SQLite e Logs
+// 6. ROTAS DA API — CRUD com Supabase / SQLite e Logs
 // ============================================================
 // Rotas públicas: GET /api/pessoas e GET /api/produtos
 // Rotas protegidas: POST e DELETE exigem JWT válido (verificado internamente nas rotas)
@@ -108,45 +113,109 @@ app.use('/api/pessoas', pessoasRoutes);
 app.use('/api/produtos', produtosRoutes);
 
 // ============================================================
-// 7. ROTA DE STATS (pública, com log)
+// 7. ROTA DE STATS (pública, com log e assíncrona)
 // ============================================================
-app.get('/api/stats', (req, res) => {
+app.get('/api/stats', async (req, res) => {
     const ip = req.ip || req.connection.remoteAddress;
     try {
-        const totalPessoas  = queries.countPessoas.get().total;
-        const totalProdutos = queries.countProdutos.get().total;
-        const totalEstoque  = queries.sumEstoque.get().total;
+        const stats = await db.stats.getStats();
 
-        logger.info('Stats do dashboard consultadas', { ip, totalPessoas, totalProdutos, totalEstoque });
+        logger.info('Stats do dashboard consultadas', {
+            ip,
+            banco: db.getDriverName(),
+            ...stats
+        });
 
-        res.json({ totalPessoas, totalProdutos, totalEstoque });
+        res.json(stats);
     } catch (err) {
-        logger.error('Erro ao consultar stats', { ip, detalhe: err.message });
-        res.status(500).json({ success: false, error: 'Erro interno.' });
+        logger.error('Erro ao consultar stats', {
+            ip,
+            banco: db.getDriverName(),
+            detalhe: err.message
+        });
+        res.status(500).json({ success: false, error: 'Erro interno ao carregar estatísticas.' });
     }
 });
 
 // ============================================================
-// 8. ROTA DE STATUS DA SEGURANÇA (informativa)
+// 8. ROTA DE LOGS DE AUDITORIA (Trilha Forense de Segurança)
+// ============================================================
+app.get('/api/logs-auditoria', async (req, res) => {
+    const ip = req.ip || req.connection.remoteAddress;
+    try {
+        const logs = await db.logsAuditoria.getRecent(50);
+        logger.info('Consulta à trilha de logs de auditoria', { ip, registros: logs.length });
+        res.json({ success: true, count: logs.length, data: logs });
+    } catch (err) {
+        logger.error('Erro ao consultar logs de auditoria', { ip, detalhe: err.message });
+        res.status(500).json({ success: false, error: 'Erro interno ao carregar logs.' });
+    }
+});
+
+// ============================================================
+// 9. ROTA DE STATUS DA SEGURANÇA (informativa)
 // ============================================================
 app.get('/api/security-info', (req, res) => {
     res.json({
         success: true,
+        bancoAtivo: db.getDriverName(),
+        tabelas: ['pessoas', 'produtos', 'usuarios', 'logs_auditoria'],
         artefatos: [
-            { nome: 'Logs Detalhados',  tecnologia: 'morgan + logger customizado', status: 'ATIVO' },
-            { nome: 'SQL Injection',    tecnologia: 'better-sqlite3 Prepared Statements', status: 'ATIVO' },
-            { nome: 'Rate Limiting',    tecnologia: 'express-rate-limit', status: 'ATIVO',
-              limites: { login: '5/15min', api: '150/15min', escrita: '20/10min' } },
-            { nome: 'Autenticação JWT', tecnologia: 'jsonwebtoken + bcryptjs', status: 'ATIVO',
-              expiracao: '2h', rotas_protegidas: ['POST /api/pessoas', 'DELETE /api/pessoas/:id', 'POST /api/produtos', 'DELETE /api/produtos/:id'] },
-            { nome: 'Helmet.js',        tecnologia: 'helmet', status: 'ATIVO',
-              cabecalhos: ['Content-Security-Policy', 'X-Frame-Options', 'X-Content-Type-Options', 'Strict-Transport-Security', 'Referrer-Policy'] }
+            {
+                nome: 'Banco de Dados Seguro',
+                tecnologia: db.getDriverName(),
+                status: 'ATIVO',
+                detalhe: 'Queries Parametrizadas (Anti-SQLi) + Row Level Security (RLS)'
+            },
+            {
+                nome: 'Controle de Acesso (RBAC)',
+                tecnologia: 'Tabela usuarios + bcryptjs + JWT',
+                status: 'ATIVO',
+                detalhe: 'Operadores admin e gerente armazenados com hash seguro'
+            },
+            {
+                nome: 'Trilha de Auditoria Forense',
+                tecnologia: 'Tabela logs_auditoria',
+                status: 'ATIVO',
+                detalhe: 'Persistência permanente de acessos, falhas e tentativas de ataque'
+            },
+            {
+                nome: 'Logs em Tempo Real',
+                tecnologia: 'morgan + logger customizado no terminal',
+                status: 'ATIVO',
+                detalhe: 'Prefixos coloridos [SECURITY], [WARN], [INFO], [SUCCESS], [DB]'
+            },
+            {
+                nome: 'Rate Limiting',
+                tecnologia: 'express-rate-limit',
+                status: 'ATIVO',
+                limites: { login: '5/15min', api: '150/15min', escrita: '20/10min' }
+            },
+            {
+                nome: 'Autenticação JWT',
+                tecnologia: 'jsonwebtoken + bcryptjs',
+                status: 'ATIVO',
+                expiracao: '2h',
+                rotas_protegidas: ['POST /api/pessoas', 'DELETE /api/pessoas/:id', 'POST /api/produtos', 'DELETE /api/produtos/:id']
+            },
+            {
+                nome: 'Helmet.js',
+                tecnologia: 'helmet',
+                status: 'ATIVO',
+                cabecalhos: ['Content-Security-Policy', 'X-Frame-Options', 'X-Content-Type-Options', 'Strict-Transport-Security', 'Referrer-Policy']
+            },
+            {
+                nome: 'Gestão de Credenciais',
+                tecnologia: 'dotenv + .gitignore',
+                status: 'ATIVO',
+                detalhe: 'Chaves de API mantidas isoladas em .env e excluídas do repositório Git'
+            }
         ]
     });
 });
 
 // ============================================================
-// 9. HANDLER GLOBAL DE ERROS
+// 10. HANDLER GLOBAL DE ERROS
 // ============================================================
 app.use((err, req, res, next) => {
     const ip = req.ip || req.connection.remoteAddress;
@@ -167,8 +236,17 @@ app.listen(PORT, () => {
     console.log('');
     logger.success(`Servidor rodando em http://localhost:${PORT}`);
     console.log('');
+    logger.info('Banco de Dados:', { Driver: db.getDriverName() });
     logger.info('Artefatos de Segurança Ativos:', {
-        Helmet: 'ON', Morgan: 'ON', RateLimit: 'ON', JWT: 'ON', SQLite_PreparedStmts: 'ON'
+        Banco: db.getDriverName(),
+        RBAC_Usuarios: 'ON',
+        Trilha_Auditoria: 'ON',
+        Terminal_Logs: 'ON',
+        Helmet: 'ON',
+        Morgan: 'ON',
+        RateLimit: 'ON',
+        JWT: 'ON',
+        DotenvSecretManagement: 'ON'
     });
     console.log('');
     logger.warn('CREDENCIAIS DE ACESSO (DEMO ACADÊMICO)');
