@@ -1,4 +1,4 @@
-# ☕ Café Artisanal — Sistema de Gestão com Foco em Segurança da Informação & UX
+# ☕ Café Artesanal — Sistema de Gestão com Foco em Segurança da Informação & UX
 
 > **Disciplina**: Segurança em Sistemas da Informação  
 > **Instituição**: Faculdade Imaculada Conceição do Recife (FICR)  
@@ -8,7 +8,7 @@
 
 ## 📌 Visão Geral do Projeto
 
-O **Café Artisanal** é uma aplicação web completa voltada para a gestão de **Pessoas** (Clientes VIP, Funcionários e Baristas) e **Produtos** (Grãos, Bebidas Quentes, Geladas, Lanches e Sobremesas) de uma cafeteria gourmet.
+O **Café Artesanal** é uma aplicação web completa voltada para a gestão de **Pessoas** (Clientes VIP, Funcionários e Baristas) e **Produtos** (Grãos, Bebidas Quentes, Geladas, Lanches e Sobremesas) de uma cafeteria gourmet.
 
 O objetivo central do projeto é aplicar os conceitos e boas práticas de **Segurança em Sistemas da Informação (SSI)** tanto no **Front-End** quanto no **Back-End** e na camada de **Banco de Dados**, implementando o princípio de **Defesa em Profundidade (*Defense in Depth*)** alinhado às recomendações do **OWASP Top 10**.
 
@@ -133,7 +133,7 @@ O arquivo `.env` já vem pré-configurado. Se desejar conectar à sua própria c
 4. Preencha no arquivo `.env`:
    ```env
    PORT=3000
-   JWT_SECRET=cafe_artisanal_super_secret_jwt_key_2025_ficr_seguranca
+   JWT_SECRET=cafe_Artesanal_super_secret_jwt_key_2025_ficr_seguranca
    SUPABASE_URL=https://seuid.supabase.co
    SUPABASE_KEY=sua-chave-api-aqui
    ```
@@ -152,7 +152,7 @@ Você verá o banner e os logs de segurança no terminal:
 
 ```text
 ╔══════════════════════════════════════════════════════════╗
-║  ☕  CAFÉ ARTISANAL — BACK-END SEGURO                     ║
+║  ☕  CAFÉ Artesanal — BACK-END SEGURO                     ║
 ║  🛡️   Segurança em Sistemas da Informação — FICR          ║
 ╚══════════════════════════════════════════════════════════╝
 
