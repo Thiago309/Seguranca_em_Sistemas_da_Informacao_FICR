@@ -74,8 +74,11 @@ app.use(morgan(':method :url :status :response-time ms | IP: :remote-addr', {
 // ============================================================
 // 3. MIDDLEWARES ESSENCIAIS
 // ============================================================
+const isVercel = Boolean(process.env.VERCEL);
 app.use(cors({
-    origin: [`http://localhost:${PORT}`],
+    origin: isVercel
+        ? true
+        : [`http://localhost:${PORT}`, `http://127.0.0.1:${PORT}`],
     methods: ['GET', 'POST', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -230,28 +233,32 @@ app.use((err, req, res, next) => {
 });
 
 // ============================================================
-// INICIALIZAÇÃO DO SERVIDOR
+// INICIALIZAÇÃO DO SERVIDOR (Apenas fora do ambiente Serverless da Vercel)
 // ============================================================
-app.listen(PORT, () => {
-    logger.banner();
-    console.log('');
-    logger.success(`Servidor rodando em http://localhost:${PORT}`);
-    console.log('');
-    logger.info('Banco de Dados:', { Driver: db.getDriverName() });
-    logger.info('Artefatos de Segurança Ativos:', {
-        Banco: db.getDriverName(),
-        RBAC_Usuarios: 'ON',
-        Trilha_Auditoria: 'ON',
-        Terminal_Logs: 'ON',
-        Helmet: 'ON',
-        Morgan: 'ON',
-        RateLimit: 'ON',
-        JWT: 'ON',
-        DotenvSecretManagement: 'ON'
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        logger.banner();
+        console.log('');
+        logger.success(`Servidor rodando em http://localhost:${PORT}`);
+        console.log('');
+        logger.info('Banco de Dados:', { Driver: db.getDriverName() });
+        logger.info('Artefatos de Segurança Ativos:', {
+            Banco: db.getDriverName(),
+            RBAC_Usuarios: 'ON',
+            Trilha_Auditoria: 'ON',
+            Terminal_Logs: 'ON',
+            Helmet: 'ON',
+            Morgan: 'ON',
+            RateLimit: 'ON',
+            JWT: 'ON',
+            DotenvSecretManagement: 'ON'
+        });
+        console.log('');
+        logger.warn('CREDENCIAIS DE ACESSO (DEMO ACADÊMICO)');
+        console.log('         admin   / cafe@2025       (Administrador)');
+        console.log('         gerente / espresso123     (Gerente)');
+        console.log('');
     });
-    console.log('');
-    logger.warn('CREDENCIAIS DE ACESSO (DEMO ACADÊMICO)');
-    console.log('         admin   / cafe@2025       (Administrador)');
-    console.log('         gerente / espresso123     (Gerente)');
-    console.log('');
-});
+}
+
+module.exports = app;

@@ -66,91 +66,92 @@ if (isConfiguredSupabase) {
 // ============================================================
 // INICIALIZAÇÃO DO BANCO LOCAL SQLITE (Para modo Fallback)
 // ============================================================
-const dbDir = path.join(__dirname, '..', 'database');
-if (!fs.existsSync(dbDir)) {
-    fs.mkdirSync(dbDir, { recursive: true });
-}
-const dbPath = path.join(dbDir, 'cafeteria.db');
-
 let localDb = null;
-try {
-    const Database = require('better-sqlite3');
-    localDb = new Database(dbPath);
-    localDb.pragma('journal_mode = WAL');
-    localDb.pragma('foreign_keys = ON');
 
-    localDb.exec(`
-        CREATE TABLE IF NOT EXISTS pessoas (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome        TEXT    NOT NULL CHECK(length(nome) <= 80),
-            cpf         TEXT    NOT NULL CHECK(length(cpf) <= 14),
-            email       TEXT    NOT NULL CHECK(length(email) <= 100),
-            telefone    TEXT    NOT NULL CHECK(length(telefone) <= 15),
-            tipo        TEXT    NOT NULL,
-            dataCadastro TEXT   NOT NULL DEFAULT (datetime('now', 'localtime'))
-        );
-
-        CREATE TABLE IF NOT EXISTS produtos (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            nome        TEXT    NOT NULL CHECK(length(nome) <= 70),
-            categoria   TEXT    NOT NULL,
-            preco       REAL    NOT NULL CHECK(preco > 0),
-            sku         TEXT    NOT NULL UNIQUE CHECK(length(sku) <= 20),
-            estoque     INTEGER NOT NULL CHECK(estoque >= 0),
-            descricao   TEXT             CHECK(length(descricao) <= 250),
-            dataCadastro TEXT   NOT NULL DEFAULT (datetime('now', 'localtime'))
-        );
-
-        CREATE TABLE IF NOT EXISTS usuarios (
-            id            INTEGER PRIMARY KEY AUTOINCREMENT,
-            username      TEXT    NOT NULL UNIQUE,
-            password_hash TEXT    NOT NULL,
-            role          TEXT    NOT NULL DEFAULT 'operador',
-            nome          TEXT    NOT NULL,
-            data_cadastro TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
-        );
-
-        CREATE TABLE IF NOT EXISTS logs_auditoria (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            nivel       TEXT    NOT NULL,
-            mensagem    TEXT    NOT NULL,
-            detalhes    TEXT,
-            ip          TEXT,
-            operador    TEXT,
-            data_hora   TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
-        );
-    `);
-
-    // Seeds locais de pessoas
-    const countP = localDb.prepare('SELECT COUNT(*) as total FROM pessoas').get();
-    if (countP.total === 0) {
-        const insP = localDb.prepare('INSERT INTO pessoas (nome, cpf, email, telefone, tipo) VALUES (?, ?, ?, ?, ?)');
-        insP.run('Ana Beatriz Souza', '123.456.789-00', 'ana.souza@email.com', '(81) 98765-4321', 'Cliente VIP');
-        insP.run('Carlos Eduardo Silva', '987.654.321-11', 'carlos.barista@cafearoma.com.br', '(81) 99123-8899', 'Barista (Funcionário)');
+if (!isSupabase) {
+    const dbDir = path.join(__dirname, '..', 'database');
+    if (!fs.existsSync(dbDir)) {
+        fs.mkdirSync(dbDir, { recursive: true });
     }
+    const dbPath = path.join(dbDir, 'cafeteria.db');
 
-    // Seeds locais de produtos
-    const countPr = localDb.prepare('SELECT COUNT(*) as total FROM produtos').get();
-    if (countPr.total === 0) {
-        const insPr = localDb.prepare('INSERT INTO produtos (nome, categoria, preco, sku, estoque, descricao) VALUES (?, ?, ?, ?, ?, ?)');
-        insPr.run('Espresso Gourmet Arábica 250g', 'Grãos & Pós', 34.90, 'CAF-ESP-250', 45, 'Grãos selecionados 100% Arábica com notas de chocolate amargo e avelã.');
-        insPr.run('Cappuccino Italiano Clássico', 'Bebidas Quentes', 16.50, 'BEB-CAP-ITA', 100, 'Espresso duplo, leite vaporizado e espuma cremosa com toque de canela.');
-        insPr.run('Croissant de Amêndoas', 'Lanches & Sobremesas', 18.00, 'LAN-CRO-AME', 20, 'Massa folhada artesanal recheada e coberta com lâminas de amêndoas tostadas.');
-    }
+    try {
+        const Database = require('better-sqlite3');
+        localDb = new Database(dbPath);
+        localDb.pragma('journal_mode = WAL');
+        localDb.pragma('foreign_keys = ON');
 
-    // Seeds locais de usuários
-    const countU = localDb.prepare('SELECT COUNT(*) as total FROM usuarios').get();
-    if (countU.total === 0) {
-        const insU = localDb.prepare('INSERT INTO usuarios (username, password_hash, role, nome) VALUES (?, ?, ?, ?)');
-        insU.run('admin', '$2b$10$aQXpxtlzIQ0eQRB.JEZJOe0JcOF/VZXeieG6yyvrtuIvuni7aajly', 'administrador', 'Administrador do Sistema');
-        insU.run('gerente', '$2b$10$cV1CO5x6MmWE7EXJKdyc7uvdvEqnRgkcdk7NCvDVJTmUlrm0LATuq', 'gerente', 'Gerente da Cafeteria');
-    }
+        localDb.exec(`
+            CREATE TABLE IF NOT EXISTS pessoas (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome        TEXT    NOT NULL CHECK(length(nome) <= 80),
+                cpf         TEXT    NOT NULL CHECK(length(cpf) <= 14),
+                email       TEXT    NOT NULL CHECK(length(email) <= 100),
+                telefone    TEXT    NOT NULL CHECK(length(telefone) <= 15),
+                tipo        TEXT    NOT NULL,
+                dataCadastro TEXT   NOT NULL DEFAULT (datetime('now', 'localtime'))
+            );
 
-    if (!isSupabase) {
+            CREATE TABLE IF NOT EXISTS produtos (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome        TEXT    NOT NULL CHECK(length(nome) <= 70),
+                categoria   TEXT    NOT NULL,
+                preco       REAL    NOT NULL CHECK(preco > 0),
+                sku         TEXT    NOT NULL UNIQUE CHECK(length(sku) <= 20),
+                estoque     INTEGER NOT NULL CHECK(estoque >= 0),
+                descricao   TEXT             CHECK(length(descricao) <= 250),
+                dataCadastro TEXT   NOT NULL DEFAULT (datetime('now', 'localtime'))
+            );
+
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id            INTEGER PRIMARY KEY AUTOINCREMENT,
+                username      TEXT    NOT NULL UNIQUE,
+                password_hash TEXT    NOT NULL,
+                role          TEXT    NOT NULL DEFAULT 'operador',
+                nome          TEXT    NOT NULL,
+                data_cadastro TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
+            );
+
+            CREATE TABLE IF NOT EXISTS logs_auditoria (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                nivel       TEXT    NOT NULL,
+                mensagem    TEXT    NOT NULL,
+                detalhes    TEXT,
+                ip          TEXT,
+                operador    TEXT,
+                data_hora   TEXT    NOT NULL DEFAULT (datetime('now', 'localtime'))
+            );
+        `);
+
+        // Seeds locais de pessoas
+        const countP = localDb.prepare('SELECT COUNT(*) as total FROM pessoas').get();
+        if (countP.total === 0) {
+            const insP = localDb.prepare('INSERT INTO pessoas (nome, cpf, email, telefone, tipo) VALUES (?, ?, ?, ?, ?)');
+            insP.run('Ana Beatriz Souza', '123.456.789-00', 'ana.souza@email.com', '(81) 98765-4321', 'Cliente VIP');
+            insP.run('Carlos Eduardo Silva', '987.654.321-11', 'carlos.barista@cafearoma.com.br', '(81) 99123-8899', 'Barista (Funcionário)');
+        }
+
+        // Seeds locais de produtos
+        const countPr = localDb.prepare('SELECT COUNT(*) as total FROM produtos').get();
+        if (countPr.total === 0) {
+            const insPr = localDb.prepare('INSERT INTO produtos (nome, categoria, preco, sku, estoque, descricao) VALUES (?, ?, ?, ?, ?, ?)');
+            insPr.run('Espresso Gourmet Arábica 250g', 'Grãos & Pós', 34.90, 'CAF-ESP-250', 45, 'Grãos selecionados 100% Arábica com notas de chocolate amargo e avelã.');
+            insPr.run('Cappuccino Italiano Clássico', 'Bebidas Quentes', 16.50, 'BEB-CAP-ITA', 100, 'Espresso duplo, leite vaporizado e espuma cremosa com toque de canela.');
+            insPr.run('Croissant de Amêndoas', 'Lanches & Sobremesas', 18.00, 'LAN-CRO-AME', 20, 'Massa folhada artesanal recheada e coberta com lâminas de amêndoas tostadas.');
+        }
+
+        // Seeds locais de usuários
+        const countU = localDb.prepare('SELECT COUNT(*) as total FROM usuarios').get();
+        if (countU.total === 0) {
+            const insU = localDb.prepare('INSERT INTO usuarios (username, password_hash, role, nome) VALUES (?, ?, ?, ?)');
+            insU.run('admin', '$2b$10$aQXpxtlzIQ0eQRB.JEZJOe0JcOF/VZXeieG6yyvrtuIvuni7aajly', 'administrador', 'Administrador do Sistema');
+            insU.run('gerente', '$2b$10$cV1CO5x6MmWE7EXJKdyc7uvdvEqnRgkcdk7NCvDVJTmUlrm0LATuq', 'gerente', 'Gerente da Cafeteria');
+        }
+
         logger.db('Conexão de fallback com SQLite local ativa', { arquivo: 'database/cafeteria.db' });
+    } catch (err) {
+        logger.error('Falha ao inicializar SQLite local:', { detalhe: err.message });
     }
-} catch (err) {
-    logger.error('Falha ao inicializar SQLite local:', { detalhe: err.message });
 }
 
 // ============================================================
