@@ -133,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainTabs = document.getElementById('mainTabs');
     const tabButtons = mainTabs.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
-    const inspectorContent = document.getElementById('inspectorContent');
     const toastContainer = document.getElementById('toastContainer');
 
     const formPessoa = document.getElementById('formPessoa');
@@ -173,28 +172,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =========================================================================
-    // 2. APLICAÇÃO DE MÁSCARAS E ATUALIZAÇÃO DO INSPETOR EM TEMPO REAL
+    // 2. APLICAÇÃO DE MÁSCARAS E VALIDAÇÃO EM TEMPO REAL
     // =========================================================================
     const allInputs = document.querySelectorAll('input, select, textarea');
 
     allInputs.forEach(input => {
-        // Evento de Foco: Ativa o Inspetor de Segurança
-        input.addEventListener('focus', () => {
-            updateInspector(input);
-        });
-
         // Evento de Digitação: Aplica Máscara, Atualiza Contador e Valida
-        input.addEventListener('input', (e) => {
+        input.addEventListener('input', () => {
             applyMask(input);
             window.ValidationEngine.updateCharCounter(input);
             window.ValidationEngine.validateField(input);
-            updateInspector(input); // Recarrega inspetor com contadores atualizados
         });
 
         // Evento de Alteração de Estado (importante para checkboxes e selects)
         input.addEventListener('change', () => {
             window.ValidationEngine.validateField(input);
-            updateInspector(input);
         });
 
         // Evento de Saída (Blur)
@@ -218,67 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // =========================================================================
-    // 3. PAINEL DO INSPETOR DE SEGURANÇA EM TEMPO REAL
-    // =========================================================================
-    function updateInspector(inputEl) {
-        const securityType = inputEl.dataset.securityType;
-        const fieldName = inputEl.dataset.fieldName || inputEl.name || "Campo Selecionado";
-        const explanation = window.SecurityExplanations[securityType];
-
-        if (!explanation) {
-            inspectorContent.innerHTML = `
-                <div class="inspector-placeholder">
-                    <i class="fa-solid fa-check-double"></i>
-                    <p>Campo selecionado: <strong>${fieldName}</strong></p>
-                </div>
-            `;
-            return;
-        }
-
-        const maxLen = inputEl.getAttribute('maxlength');
-        const curLen = inputEl.value ? inputEl.value.length : 0;
-        const isReq = inputEl.hasAttribute('required');
-
-        let stateLine = `<li><strong>Estado Atual:</strong> ${curLen} caracteres digitados</li>`;
-        let limitLine = `<li><strong>Limite Maxlength:</strong> ${maxLen ? `${maxLen} caracteres` : 'Não definido'}</li>`;
-
-        if (inputEl.type === 'checkbox') {
-            stateLine = `<li><strong>Estado Atual:</strong> ${inputEl.checked ? '<span style="color:var(--success); font-weight:600;">Marcado (Aceito)</span>' : '<span style="color:var(--error); font-weight:600;">Desmarcado</span>'}</li>`;
-            limitLine = '';
-        }
-
-        inspectorContent.innerHTML = `
-            <div class="inspector-active-box">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span class="insp-tag insp-tag-security">${explanation.securityTag}</span>
-                    <span class="insp-tag insp-tag-ux">${explanation.uxTag}</span>
-                </div>
-                
-                <h4 class="insp-field-title"><i class="fa-solid fa-pen-to-square"></i> ${fieldName}</h4>
-
-                <div class="insp-card-block">
-                    <div class="insp-section-title"><i class="fa-solid fa-shield-halved"></i> Por que é usado em Segurança?</div>
-                    <p>${explanation.securityDesc}</p>
-                </div>
-
-                <div class="insp-card-block">
-                    <div class="insp-section-title"><i class="fa-solid fa-user-check"></i> Por que é usado em UX?</div>
-                    <p>${explanation.uxDesc}</p>
-                </div>
-
-                <div class="insp-card-block">
-                    <div class="insp-section-title"><i class="fa-solid fa-sliders"></i> Atributos Ativos no DOM:</div>
-                    <ul style="list-style:none; font-size:0.8rem; color:var(--text-main); display:flex; flex-direction:column; gap:0.3rem;">
-                        <li><strong>Obrigatoriedade:</strong> ${isReq ? '<span style="color:var(--error)">Required (Sim)</span>' : 'Opcional'}</li>
-                        ${limitLine}
-                        ${stateLine}
-                        <li><strong>Tipo Nativo:</strong> <code>type="${inputEl.getAttribute('type') || 'text'}"</code></li>
-                    </ul>
-                </div>
-            </div>
-        `;
-    }
 
     // =========================================================================
     // 4. SUBMISSÃO DOS FORMULÁRIOS (SUBMIT HANDLERS)
