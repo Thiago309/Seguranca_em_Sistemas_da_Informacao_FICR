@@ -124,9 +124,6 @@
                     <i class="fa-solid fa-list-check"></i> Registros & Gestão
                     <span class="tab-badge" id="totalRecordsBadge">0</span>
                 </button>
-                <button class="tab-btn tab-btn-highlight" data-tab="tab-guia">
-                    <i class="fa-solid fa-graduation-cap"></i> Manual Segurança & UX
-                </button>
             </nav>
 
             <!-- TAB 1: CADASTRO DE PESSOAS -->
@@ -556,93 +553,6 @@
                                     <!-- Preenchido via JS -->
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- TAB 4: MANUAL EXPLICATIVO DE SEGURANÇA E UX -->
-            <section class="tab-content" id="tab-guia">
-                <div class="card guide-card">
-                    <div class="guide-header">
-                        <div class="guide-title-badge">
-                            <i class="fa-solid fa-shield-virus"></i> Fundamentos de Segurança & UX
-                        </div>
-                        <h2>Por que estes 4 recursos são indispensáveis no Front-End?</h2>
-                        <p>Explicação técnica e acadêmica elaborada para a disciplina de <strong>Segurança em Sistemas da Informação (FICR)</strong>.</p>
-                    </div>
-
-                    <div class="guide-grid">
-                        <!-- Card 1: Limite de Caracteres -->
-                        <div class="guide-item">
-                            <div class="guide-item-header">
-                                <div class="guide-number">1</div>
-                                <div>
-                                    <h3>Limite de Caracteres (`maxlength` e JS)</h3>
-                                    <span class="tech-tag">Segurança • Performance • UX</span>
-                                </div>
-                            </div>
-                            <div class="guide-body">
-                                <h4><i class="fa-solid fa-lock"></i> Impacto em Segurança:</h4>
-                                <p>Previne ataques de <strong>Buffer Overflow</strong> em nível de aplicação (quando payloads gigantescos tentam estourar a memória alocada ou estourar a coluna do banco de dados) e impede ataques de <strong>Payload Flooding / DoS</strong>, onde atacantes enviam megabytes de texto em um único campo de formulário para consumir banda e processamento do servidor.</p>
-                                
-                                <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Impacto em UX:</h4>
-                                <p>Evita que o usuário cometa o engano de digitar textos excessivamente longos sem saber que serão cortados no banco de dados. O contador dinâmico em tempo real fornece um feedback constante sobre quanto espaço restou.</p>
-                            </div>
-                        </div>
-
-                        <!-- Card 2: Campos Obrigatórios -->
-                        <div class="guide-item">
-                            <div class="guide-item-header">
-                                <div class="guide-number">2</div>
-                                <div>
-                                    <h3>Campos Obrigatórios (`required` e Pré-validação)</h3>
-                                    <span class="tech-tag">Consistência • Integridade</span>
-                                </div>
-                            </div>
-                            <div class="guide-body">
-                                <h4><i class="fa-solid fa-lock"></i> Impacto em Segurança:</h4>
-                                <p>Garante a <strong>consistência de estado da aplicação</strong> antes que qualquer objeto seja instanciado ou enviado para a rede. Evita exceções do tipo <i>NullPointerException</i> ou estados de dados corrompidos no backend/banco de dados por ausência de atributos essenciais.</p>
-                                
-                                <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Impacto em UX:</h4>
-                                <p>Sinaliza claramente o contrato entre a interface e o usuário (asterisco visual e destaque em vermelho no foco), impedindo o envio acidental e frustrante de formulários incompletos.</p>
-                            </div>
-                        </div>
-
-                        <!-- Card 3: Máscaras de Entrada -->
-                        <div class="guide-item">
-                            <div class="guide-item-header">
-                                <div class="guide-number">3</div>
-                                <div>
-                                    <h3>Máscaras de Entrada (CPF, Telefone, CEP, Moeda)</h3>
-                                    <span class="tech-tag">Sanitização • Padronização</span>
-                                </div>
-                            </div>
-                            <div class="guide-body">
-                                <h4><i class="fa-solid fa-lock"></i> Impacto em Segurança:</h4>
-                                <p>Atua como a primeira barreira de <strong>sanitização de input</strong>. Bloqueia ativamente a digitação de caracteres especiais maliciosos (como aspas simples <code>'</code>, tags HTML <code>&lt;script&gt;</code> ou comandos SQL) em campos puramente numéricos como CPF, Telefone e Preço, reduzindo drasticamente superfícies de ataque como XSS e Injection.</p>
-                                
-                                <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Impacto em UX:</h4>
-                                <p>Fornece formatação visual automática (pontuação de CPF, parênteses do DDD e símbolo R$), eliminando a dúvida do usuário se deve ou não digitar os pontos e traços.</p>
-                            </div>
-                        </div>
-
-                        <!-- Card 4: Tipagem de Inputs -->
-                        <div class="guide-item">
-                            <div class="guide-item-header">
-                                <div class="guide-number">4</div>
-                                <div>
-                                    <h3>Tipagem de Inputs (`type="email"`, `number`, `tel`)</h3>
-                                    <span class="tech-tag">Validação Nativa • Acessibilidade</span>
-                                </div>
-                            </div>
-                            <div class="guide-body">
-                                <h4><i class="fa-solid fa-lock"></i> Impacto em Segurança:</h4>
-                                <p>Aproveita o motor de validação estrita e nativo do navegador (*HTML5 Form Validation*). O navegador rejeita o envio de dados que não estejam de acordo com a sintaxe exigida (ex: e-mail sem <code>@</code> ou domínio), reduzindo tráfego inútil para o servidor.</p>
-                                
-                                <h4><i class="fa-solid fa-wand-magic-sparkles"></i> Impacto em UX:</h4>
-                                <p>Em dispositivos móveis (smartphones e tablets), ativa automaticamente o teclado otimizado (teclado virtual com <code>@</code> e <code>.com</code> para e-mail, ou teclado numérico limpo para telefone/estoque), facilitando imensamente a digitação e acessibilidade.</p>
-                            </div>
                         </div>
                     </div>
                 </div>
